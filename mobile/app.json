@@ -1,0 +1,77 @@
+{
+  "expo": {
+    "name": "Bubbles",
+    "slug": "bubbles",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "automatic",
+    "splash": {
+      "image": "./assets/splash.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#8B5CF6"
+    },
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.bubbles.app",
+      "infoPlist": {
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Bubbles shares your location with your partner so you can stay connected throughout the day.",
+        "NSLocationWhenInUseUsageDescription": "Bubbles needs your location to share it with your partner.",
+        "NSMotionUsageDescription": "Bubbles tracks your activity to share fitness data with your partner.",
+        "NSHealthShareUsageDescription": "Bubbles shares your health and fitness data with your partner.",
+        "NSHealthUpdateUsageDescription": "Bubbles uses your health data to show your partner your activity.",
+        "NSCalendarsUsageDescription": "Bubbles shares your calendar status with your partner (e.g., 'in a meeting').",
+        "UIBackgroundModes": [
+          "location",
+          "fetch",
+          "remote-notification"
+        ]
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#8B5CF6"
+      },
+      "package": "com.bubbles.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "ACTIVITY_RECOGNITION",
+        "READ_CALENDAR",
+        "RECEIVE_BOOT_COMPLETED",
+        "FOREGROUND_SERVICE",
+        "FOREGROUND_SERVICE_LOCATION"
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png"
+    },
+    "plugins": [
+      [
+        "expo-location",
+        {
+          "locationAlwaysAndWhenInUsePermission": "Allow Bubbles to use your location to share with your partner.",
+          "locationAlwaysPermission": "Allow Bubbles to use your location even when the app is in the background.",
+          "locationWhenInUsePermission": "Allow Bubbles to use your location to share with your partner."
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#8B5CF6"
+        }
+      ]
+    ],
+    "extra": {
+      "eas": {
+        "projectId": "your-project-id"
+      }
+    }
+  }
+}
