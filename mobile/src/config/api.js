@@ -4,7 +4,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 // Change this to your Railway backend URL or use localhost for development
 const API_URL = __DEV__
   ? 'http://localhost:3000/api'
-  : 'https://your-app.railway.app/api';
+  : 'https://bubbles-production-ac7a.up.railway.app/api';
 
 const api = axios.create({
   baseURL: API_URL,
