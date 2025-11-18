@@ -9,8 +9,12 @@ import {
   Alert,
   ActivityIndicator,
   RefreshControl,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import api from '../config/api';
+import { BlobCard, GentleButton, WavePattern, AnimatedBlob, PatternBackground } from '../components';
+import theme from '../theme';
 
 export default function PartnerScreen({ navigation }) {
   const [partner, setPartner] = useState(null);
@@ -126,251 +130,264 @@ export default function PartnerScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>Partner</Text>
-        </View>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
+          <Text style={[theme.textStyles.h3, styles.loadingText]}>Loading...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Partner</Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+
+      {/* Multi-layered backgrounds */}
+      <WavePattern color={theme.colors.mossGreen} opacity={0.06} />
+      <PatternBackground pattern="cross-dots" color={theme.colors.lavender} opacity={0.05} size="small" />
+      <PatternBackground pattern="diagonal-lines" color={theme.colors.slate} opacity={0.04} size="large" />
+
+      {/* Floating blobs for depth */}
+      <AnimatedBlob color={theme.colors.lavender} size={210} opacity={0.16} shape="shape3" duration={27000} style={{ top: '-8%', right: '-12%' }} />
+      <AnimatedBlob color={theme.colors.mossGreen} size={175} opacity={0.14} shape="shape5" duration={29000} style={{ top: '30%', left: '-10%' }} />
+      <AnimatedBlob color={theme.colors.peach} size={190} opacity={0.12} shape="shape2" duration={25000} style={{ bottom: '20%', right: '-8%' }} />
+      <AnimatedBlob color={theme.colors.teal} size={160} opacity={0.15} shape="shape4" duration={31000} style={{ bottom: '50%', left: '85%' }} />
 
       <ScrollView
-        style={styles.content}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
       >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[theme.textStyles.h2, styles.headerTitle]}>
+            {partner ? 'Your Connection' : 'Find Your Sugarbum'}
+          </Text>
+          <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
+            {partner ? 'Your special person' : 'Connect with someone special'}
+          </Text>
+        </View>
+
         {partner ? (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Current Partner</Text>
-            <View style={styles.partnerCard}>
+            <BlobCard style={styles.partnerCard}>
               <Text style={styles.partnerIcon}>💑</Text>
-              <View style={styles.partnerInfo}>
-                <Text style={styles.partnerName}>{partner.name}</Text>
-                <Text style={styles.partnerEmail}>{partner.email}</Text>
-              </View>
-            </View>
+              <Text style={[theme.textStyles.h2, styles.partnerName]}>{partner.name}</Text>
+              <Text style={[theme.textStyles.body, styles.partnerEmail]}>{partner.email}</Text>
+            </BlobCard>
+
             <TouchableOpacity style={styles.removeButton} onPress={removePartner}>
-              <Text style={styles.removeButtonText}>Remove Partner</Text>
+              <Text style={[theme.textStyles.body, styles.removeButtonText]}>
+                Disconnect
+              </Text>
             </TouchableOpacity>
           </View>
         ) : (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Connect with Your Partner</Text>
-            <Text style={styles.sectionDescription}>
-              Enter your partner's email address to send them a connection request
-            </Text>
-            <TextInput
-              style={styles.input}
-              placeholder="Partner's email"
-              placeholderTextColor="#9CA3AF"
-              value={partnerEmail}
-              onChangeText={setPartnerEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-            />
-            <TouchableOpacity
-              style={styles.button}
-              onPress={sendPartnerRequest}
-              disabled={isSending}
-            >
-              {isSending ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Send Request</Text>
-              )}
-            </TouchableOpacity>
+            <BlobCard style={styles.connectCard}>
+              <Text style={styles.connectEmoji}>💕</Text>
+              <Text style={[theme.textStyles.h3, styles.connectTitle]}>
+                Connect with Your Sugarbum
+              </Text>
+              <Text style={[theme.textStyles.bodySmall, styles.connectDescription]}>
+                Enter their email to send a connection request
+              </Text>
+
+              <TextInput
+                style={[theme.textStyles.body, styles.input]}
+                placeholder="Partner's email"
+                placeholderTextColor={theme.colors.mediumGray}
+                value={partnerEmail}
+                onChangeText={setPartnerEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+              />
+
+              <GentleButton
+                title={isSending ? '...' : 'Send Request'}
+                onPress={sendPartnerRequest}
+                variant="primary"
+                size="large"
+                style={styles.sendButton}
+              />
+            </BlobCard>
           </View>
         )}
 
         {requests.length > 0 && (
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Pending Requests</Text>
+            <Text style={[theme.textStyles.h3, styles.sectionTitle]}>Pending Requests</Text>
             {requests.map((request) => (
-              <View key={request.id} style={styles.requestCard}>
+              <BlobCard key={request.id} style={styles.requestCard}>
                 <View style={styles.requestInfo}>
-                  <Text style={styles.requestName}>{request.partner_name}</Text>
-                  <Text style={styles.requestEmail}>{request.partner_email}</Text>
+                  <Text style={[theme.textStyles.h3, styles.requestName]}>
+                    {request.partner_name}
+                  </Text>
+                  <Text style={[theme.textStyles.bodySmall, styles.requestEmail]}>
+                    {request.partner_email}
+                  </Text>
                 </View>
                 <View style={styles.requestActions}>
-                  <TouchableOpacity
-                    style={styles.acceptButton}
-                    onPress={() => respondToRequest(request.id, true)}
-                  >
-                    <Text style={styles.acceptButtonText}>Accept</Text>
-                  </TouchableOpacity>
+                  <View style={styles.actionButton}>
+                    <GentleButton
+                      title="Accept"
+                      onPress={() => respondToRequest(request.id, true)}
+                      variant="soft"
+                      size="medium"
+                    />
+                  </View>
                   <TouchableOpacity
                     style={styles.rejectButton}
                     onPress={() => respondToRequest(request.id, false)}
                   >
-                    <Text style={styles.rejectButtonText}>Decline</Text>
+                    <Text style={[theme.textStyles.bodySmall, styles.rejectButtonText]}>
+                      Decline
+                    </Text>
                   </TouchableOpacity>
                 </View>
-              </View>
+              </BlobCard>
             ))}
           </View>
         )}
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.cream,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: theme.spacing['2xl'],
+    paddingBottom: theme.spacing['4xl'],
   },
   header: {
-    backgroundColor: '#fff',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    marginBottom: theme.spacing.xl,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    color: theme.colors.deepNavy,
+    marginBottom: theme.spacing.xs,
   },
-  content: {
-    flex: 1,
-    padding: 16,
+  headerSubtitle: {
+    color: theme.colors.mediumGray,
   },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    color: theme.colors.mediumGray,
+  },
   section: {
-    marginBottom: 32,
+    marginBottom: theme.spacing.xl,
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 8,
-  },
-  sectionDescription: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 16,
-  },
-  input: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
-  },
-  button: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+    color: theme.colors.deepNavy,
+    marginBottom: theme.spacing.lg,
   },
   partnerCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: theme.spacing.lg,
   },
   partnerIcon: {
-    fontSize: 48,
-    marginRight: 16,
-  },
-  partnerInfo: {
-    flex: 1,
+    fontSize: 64,
+    marginBottom: theme.spacing.lg,
   },
   partnerName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    color: theme.colors.deepNavy,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xs,
   },
   partnerEmail: {
-    fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
+    textAlign: 'center',
+    marginBottom: theme.spacing.md,
   },
   removeButton: {
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#EF4444',
+    borderColor: theme.colors.dustyRose,
   },
   removeButtonText: {
-    color: '#EF4444',
-    fontSize: 16,
-    fontWeight: '600',
+    color: theme.colors.dustyRose,
+    fontWeight: theme.typography.fontWeight.semibold,
+  },
+  connectCard: {
+    alignItems: 'center',
+  },
+  connectEmoji: {
+    fontSize: 64,
+    marginBottom: theme.spacing.lg,
+  },
+  connectTitle: {
+    color: theme.colors.deepNavy,
+    textAlign: 'center',
+    marginBottom: theme.spacing.sm,
+  },
+  connectDescription: {
+    color: theme.colors.mediumGray,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
+  },
+  input: {
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    borderWidth: 2,
+    borderColor: theme.colors.lightGray,
+    color: theme.colors.charcoal,
+    width: '100%',
+    ...theme.shadows.level1,
+  },
+  sendButton: {
+    width: '100%',
   },
   requestCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: theme.spacing.md,
   },
   requestInfo: {
-    marginBottom: 16,
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
   },
   requestName: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    color: theme.colors.deepNavy,
+    marginBottom: theme.spacing.xs,
   },
   requestEmail: {
-    fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
   },
   requestActions: {
     flexDirection: 'row',
-    gap: 12,
+    gap: theme.spacing.md,
+    width: '100%',
   },
-  acceptButton: {
+  actionButton: {
     flex: 1,
-    backgroundColor: '#10B981',
-    borderRadius: 12,
-    padding: 12,
-    alignItems: 'center',
-  },
-  acceptButtonText: {
-    color: '#fff',
-    fontSize: 14,
-    fontWeight: '600',
   },
   rejectButton: {
     flex: 1,
-    backgroundColor: '#F3F4F6',
-    borderRadius: 12,
-    padding: 12,
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.md,
     alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 2,
+    borderColor: theme.colors.lightGray,
   },
   rejectButtonText: {
-    color: '#6B7280',
-    fontSize: 14,
-    fontWeight: '600',
+    color: theme.colors.mediumGray,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
 });

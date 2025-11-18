@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const path = require('path');
 require('dotenv').config();
 
 const pool = require('./config/database');
@@ -18,13 +19,19 @@ const app = express();
 const PORT = process.env.PORT || 3000;
 
 // Middleware
-app.use(helmet());
+app.use(helmet({
+  contentSecurityPolicy: false, // Disable for React Native Web
+  crossOriginEmbedderPolicy: false
+}));
 app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   credentials: true
 }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+
+// Serve static files from the React Native Web build
+app.use(express.static(path.join(__dirname, '../public')));
 
 // Rate limiting
 const limiter = rateLimit({
@@ -58,22 +65,15 @@ app.use('/api/signals', signalsRoutes);
 app.use('/api/spotify', spotifyRoutes);
 app.use('/api/privacy', privacyRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({
-    name: 'Bubbles API',
-    version: '1.0.0',
-    description: 'Couples context-sharing backend',
-    endpoints: {
-      health: '/health',
-      auth: '/api/auth',
-      users: '/api/users',
-      partners: '/api/partners',
-      signals: '/api/signals',
-      spotify: '/api/spotify',
-      privacy: '/api/privacy'
-    }
-  });
+// Serve the React Native Web app for all non-API routes
+app.get('*', (req, res, next) => {
+  // Skip if this is an API route
+  if (req.path.startsWith('/api/') || req.path === '/health') {
+    return next();
+  }
+
+  // Serve the index.html for the web app
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
 // Error handling middleware
@@ -93,7 +93,7 @@ app.use((req, res) => {
 // Start server
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`
-🚀 Bubbles API Server Running
+💕 Sugarbum API Server Running
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Port: ${PORT}
 Environment: ${process.env.NODE_ENV || 'development'}

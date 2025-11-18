@@ -6,10 +6,14 @@ import {
   StyleSheet,
   ScrollView,
   Alert,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
+import { BlobCard, WavePattern } from '../components';
+import theme from '../theme';
 
 export default function SettingsScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -48,26 +52,43 @@ export default function SettingsScreen({ navigation }) {
   };
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>Settings</Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-      <ScrollView style={styles.content}>
+      {/* Multi-layered backgrounds */}
+      <WavePattern color={theme.colors.slate} opacity={0.07} />
+      <PatternBackground pattern="zigzag" color={theme.colors.deepTeal} opacity={0.05} size="medium" />
+      <PatternBackground pattern="dots" color={theme.colors.warmYellow} opacity={0.04} size="small" />
+
+      {/* Floating blobs */}
+      <AnimatedBlob color={theme.colors.slate} size={230} opacity={0.14} shape="shape1" duration={26000} style={{ top: '-10%', left: '-15%' }} />
+      <AnimatedBlob color={theme.colors.deepTeal} size={195} opacity={0.16} shape="shape3" duration={30000} style={{ top: '20%', right: '-12%' }} />
+      <AnimatedBlob color={theme.colors.warmYellow} size={170} opacity={0.13} shape="shape5" duration={28000} style={{ bottom: '25%', left: '-9%' }} />
+      <AnimatedBlob color={theme.colors.mutedPurple} size={155} opacity={0.15} shape="shape2" duration={24000} style={{ bottom: '5%', right: '83%' }} />
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[theme.textStyles.h2, styles.headerTitle]}>Settings</Text>
+        </View>
+
         {/* User Info */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Account</Text>
+          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>Account</Text>
           {user && (
-            <View style={styles.userCard}>
-              <Text style={styles.userName}>{user.name}</Text>
-              <Text style={styles.userEmail}>{user.email}</Text>
-            </View>
+            <BlobCard style={styles.userCard}>
+              <Text style={[theme.textStyles.h2, styles.userName]}>{user.name}</Text>
+              <Text style={[theme.textStyles.body, styles.userEmail]}>{user.email}</Text>
+            </BlobCard>
           )}
         </View>
 
         {/* Settings Options */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Preferences</Text>
+          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>Preferences</Text>
 
           <TouchableOpacity
             style={styles.settingItem}
@@ -75,8 +96,10 @@ export default function SettingsScreen({ navigation }) {
           >
             <Text style={styles.settingIcon}>🔒</Text>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingTitle}>Privacy Controls</Text>
-              <Text style={styles.settingDescription}>
+              <Text style={[theme.textStyles.body, styles.settingTitle]}>
+                Privacy Controls
+              </Text>
+              <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                 Manage what you share with your partner
               </Text>
             </View>
@@ -89,8 +112,10 @@ export default function SettingsScreen({ navigation }) {
           >
             <Text style={styles.settingIcon}>🔔</Text>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingTitle}>Notifications</Text>
-              <Text style={styles.settingDescription}>
+              <Text style={[theme.textStyles.body, styles.settingTitle]}>
+                Notifications
+              </Text>
+              <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                 Configure push notification preferences
               </Text>
             </View>
@@ -103,8 +128,10 @@ export default function SettingsScreen({ navigation }) {
           >
             <Text style={styles.settingIcon}>🎵</Text>
             <View style={styles.settingInfo}>
-              <Text style={styles.settingTitle}>Connected Services</Text>
-              <Text style={styles.settingDescription}>
+              <Text style={[theme.textStyles.body, styles.settingTitle]}>
+                Connected Services
+              </Text>
+              <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                 Manage Spotify and other integrations
               </Text>
             </View>
@@ -114,146 +141,121 @@ export default function SettingsScreen({ navigation }) {
 
         {/* About */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>About</Text>
+          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>About</Text>
 
-          <View style={styles.aboutCard}>
-            <Text style={styles.aboutTitle}>🫧 Bubbles</Text>
-            <Text style={styles.aboutVersion}>Version 1.0.0</Text>
-            <Text style={styles.aboutDescription}>
+          <BlobCard style={styles.aboutCard}>
+            <Text style={styles.aboutTitle}>💕 Sugarbum</Text>
+            <Text style={[theme.textStyles.bodySmall, styles.aboutVersion]}>
+              Version 1.0.0
+            </Text>
+            <Text style={[theme.textStyles.body, styles.aboutDescription]}>
               Stay connected with your person through automatic life signals
             </Text>
-          </View>
+          </BlobCard>
         </View>
 
         {/* Logout Button */}
         <TouchableOpacity style={styles.logoutButton} onPress={handleLogout}>
-          <Text style={styles.logoutButtonText}>Logout</Text>
+          <Text style={[theme.textStyles.body, styles.logoutButtonText]}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.cream,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: theme.spacing['2xl'],
+    paddingBottom: theme.spacing['4xl'],
   },
   header: {
-    backgroundColor: '#fff',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    marginBottom: theme.spacing.xl,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-  },
-  content: {
-    flex: 1,
-    padding: 16,
+    color: theme.colors.deepNavy,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: theme.spacing['2xl'],
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
-    marginBottom: 12,
-    paddingHorizontal: 4,
+    color: theme.colors.deepNavy,
+    marginBottom: theme.spacing.lg,
   },
   userCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    alignItems: 'center',
   },
   userName: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    marginBottom: 4,
+    color: theme.colors.deepNavy,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xs,
   },
   userEmail: {
-    fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
+    textAlign: 'center',
   },
   settingItem: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: theme.colors.lightGray,
+    ...theme.shadows.level1,
   },
   settingIcon: {
-    fontSize: 32,
-    marginRight: 16,
+    fontSize: 28,
+    marginRight: theme.spacing.md,
   },
   settingInfo: {
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    marginBottom: 2,
+    color: theme.colors.deepNavy,
+    fontWeight: theme.typography.fontWeight.semibold,
+    marginBottom: theme.spacing.xs,
   },
   settingDescription: {
-    fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
   },
   settingChevron: {
     fontSize: 24,
-    color: '#9CA3AF',
+    color: theme.colors.mediumGray,
   },
   aboutCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 24,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
   },
   aboutTitle: {
-    fontSize: 32,
-    fontWeight: 'bold',
-    marginBottom: 8,
+    fontSize: 40,
+    marginBottom: theme.spacing.md,
   },
   aboutVersion: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginBottom: 16,
+    color: theme.colors.mediumGray,
+    marginBottom: theme.spacing.lg,
   },
   aboutDescription: {
-    fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.charcoal,
     textAlign: 'center',
   },
   logoutButton: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#EF4444',
-    marginBottom: 32,
+    borderColor: theme.colors.dustyRose,
+    marginBottom: theme.spacing['2xl'],
   },
   logoutButtonText: {
-    color: '#EF4444',
-    fontSize: 16,
-    fontWeight: '600',
+    color: theme.colors.dustyRose,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
 });

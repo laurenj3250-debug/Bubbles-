@@ -10,9 +10,13 @@ import {
   Alert,
   ActivityIndicator,
   ScrollView,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
+import { WavePattern, GentleButton, AnimatedBlob, PatternBackground } from '../components';
+import theme from '../theme';
 
 export default function RegisterScreen({ navigation }) {
   const [name, setName] = useState('');
@@ -63,97 +67,120 @@ export default function RegisterScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <ScrollView contentContainerStyle={styles.scrollContent}>
-        <View style={styles.content}>
-          <Text style={styles.title}>Create Account</Text>
-          <Text style={styles.subtitle}>Join Bubbles and connect with your partner</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-          <View style={styles.form}>
-            <TextInput
-              style={styles.input}
-              placeholder="Name *"
-              placeholderTextColor="#9CA3AF"
-              value={name}
-              onChangeText={setName}
-              autoCapitalize="words"
-            />
+      {/* Multi-layered backgrounds */}
+      <WavePattern color={theme.colors.deepTeal} opacity={0.07} />
+      <PatternBackground pattern="triangles" color={theme.colors.mutedPurple} opacity={0.05} size="medium" />
+      <PatternBackground pattern="grid" color={theme.colors.mossGreen} opacity={0.03} size="large" />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Email *"
-              placeholderTextColor="#9CA3AF"
-              value={email}
-              onChangeText={setEmail}
-              autoCapitalize="none"
-              keyboardType="email-address"
-              autoComplete="email"
-            />
+      {/* Floating blobs */}
+      <AnimatedBlob color={theme.colors.deepTeal} size={240} opacity={0.14} shape="shape2" duration={29000} style={{ top: '-12%', left: '-18%' }} />
+      <AnimatedBlob color={theme.colors.mutedPurple} size={190} opacity={0.17} shape="shape4" duration={31000} style={{ top: '25%', right: '-10%' }} />
+      <AnimatedBlob color={theme.colors.slate} size={170} opacity={0.13} shape="shape1" duration={27000} style={{ bottom: '15%', left: '-8%' }} />
+      <AnimatedBlob color={theme.colors.peach} size={150} opacity={0.15} shape="shape3" duration={24000} style={{ bottom: '45%', right: '82%' }} />
 
-            <TextInput
-              style={styles.input}
-              placeholder="Phone (optional)"
-              placeholderTextColor="#9CA3AF"
-              value={phone}
-              onChangeText={setPhone}
-              keyboardType="phone-pad"
-              autoComplete="tel"
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Password *"
-              placeholderTextColor="#9CA3AF"
-              value={password}
-              onChangeText={setPassword}
-              secureTextEntry
-              autoComplete="password-new"
-            />
-
-            <TextInput
-              style={styles.input}
-              placeholder="Confirm Password *"
-              placeholderTextColor="#9CA3AF"
-              value={confirmPassword}
-              onChangeText={setConfirmPassword}
-              secureTextEntry
-            />
-
-            <TouchableOpacity
-              style={styles.button}
-              onPress={handleRegister}
-              disabled={isLoading}
-            >
-              {isLoading ? (
-                <ActivityIndicator color="#fff" />
-              ) : (
-                <Text style={styles.buttonText}>Create Account</Text>
-              )}
-            </TouchableOpacity>
-
-            <TouchableOpacity
-              onPress={() => navigation.goBack()}
-              style={styles.linkButton}
-            >
-              <Text style={styles.linkText}>
-                Already have an account?{' '}
-                <Text style={styles.linkTextBold}>Login</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <ScrollView contentContainerStyle={styles.scrollContent}>
+          <View style={styles.content}>
+            {/* Sugarbum branding */}
+            <View style={styles.brandContainer}>
+              <View style={styles.logoCircle}>
+                <Text style={styles.logoEmoji}>💕</Text>
+              </View>
+              <Text style={[theme.textStyles.h1, styles.title]}>Join Sugarbum</Text>
+              <Text style={[theme.textStyles.body, styles.subtitle]}>
+                Connect with your sugarbum
               </Text>
-            </TouchableOpacity>
+            </View>
+
+            {/* Registration form */}
+            <View style={styles.form}>
+              <TextInput
+                style={[theme.textStyles.body, styles.input]}
+                placeholder="Name *"
+                placeholderTextColor={theme.colors.mediumGray}
+                value={name}
+                onChangeText={setName}
+                autoCapitalize="words"
+              />
+
+              <TextInput
+                style={[theme.textStyles.body, styles.input]}
+                placeholder="Email *"
+                placeholderTextColor={theme.colors.mediumGray}
+                value={email}
+                onChangeText={setEmail}
+                autoCapitalize="none"
+                keyboardType="email-address"
+                autoComplete="email"
+              />
+
+              <TextInput
+                style={[theme.textStyles.body, styles.input]}
+                placeholder="Phone (optional)"
+                placeholderTextColor={theme.colors.mediumGray}
+                value={phone}
+                onChangeText={setPhone}
+                keyboardType="phone-pad"
+                autoComplete="tel"
+              />
+
+              <TextInput
+                style={[theme.textStyles.body, styles.input]}
+                placeholder="Password *"
+                placeholderTextColor={theme.colors.mediumGray}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                autoComplete="password-new"
+              />
+
+              <TextInput
+                style={[theme.textStyles.body, styles.input]}
+                placeholder="Confirm Password *"
+                placeholderTextColor={theme.colors.mediumGray}
+                value={confirmPassword}
+                onChangeText={setConfirmPassword}
+                secureTextEntry
+              />
+
+              <GentleButton
+                title={isLoading ? '...' : 'Create Account'}
+                onPress={handleRegister}
+                variant="primary"
+                size="large"
+                style={styles.signupButton}
+              />
+
+              <TouchableOpacity
+                onPress={() => navigation.goBack()}
+                style={styles.linkButton}
+              >
+                <Text style={[theme.textStyles.bodySmall, styles.linkText]}>
+                  Already have an account?{' '}
+                  <Text style={styles.linkTextBold}>Login</Text>
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.cream,
+  },
+  keyboardView: {
+    flex: 1,
   },
   scrollContent: {
     flexGrow: 1,
@@ -161,55 +188,62 @@ const styles = StyleSheet.create({
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
-    paddingVertical: 48,
+    paddingHorizontal: theme.spacing['2xl'],
+    paddingVertical: theme.spacing['3xl'],
+  },
+  brandContainer: {
+    alignItems: 'center',
+    marginBottom: theme.spacing['3xl'],
+  },
+  logoCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: theme.colors.sageGreen,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+    ...theme.shadows.level2,
+  },
+  logoEmoji: {
+    fontSize: 50,
   },
   title: {
-    fontSize: 32,
-    fontWeight: 'bold',
+    color: theme.colors.deepNavy,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
     textAlign: 'center',
-    marginBottom: 32,
   },
   form: {
     width: '100%',
   },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    borderWidth: 2,
+    borderColor: theme.colors.lightGray,
+    color: theme.colors.charcoal,
+    ...theme.shadows.level1,
   },
-  button: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  signupButton: {
+    marginTop: theme.spacing.md,
+    width: '100%',
   },
   linkButton: {
-    marginTop: 24,
+    marginTop: theme.spacing.xl,
     alignItems: 'center',
   },
   linkText: {
-    color: '#6B7280',
-    fontSize: 14,
+    color: theme.colors.mediumGray,
+    textAlign: 'center',
   },
   linkTextBold: {
-    color: '#8B5CF6',
-    fontWeight: '600',
+    color: theme.colors.sageGreen,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
 });

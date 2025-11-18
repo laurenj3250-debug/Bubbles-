@@ -9,9 +9,13 @@ import {
   Platform,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
+import { WavePattern, GentleButton, AnimatedBlob, PatternBackground } from '../components';
+import theme from '../theme';
 
 export default function LoginScreen({ navigation }) {
   const [email, setEmail] = useState('');
@@ -47,119 +51,150 @@ export default function LoginScreen({ navigation }) {
   };
 
   return (
-    <KeyboardAvoidingView
-      behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-      style={styles.container}
-    >
-      <View style={styles.content}>
-        <Text style={styles.title}>🫧 Bubbles</Text>
-        <Text style={styles.subtitle}>Stay connected with your person</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-        <View style={styles.form}>
-          <TextInput
-            style={styles.input}
-            placeholder="Email"
-            placeholderTextColor="#9CA3AF"
-            value={email}
-            onChangeText={setEmail}
-            autoCapitalize="none"
-            keyboardType="email-address"
-            autoComplete="email"
-          />
+      {/* Multi-layered backgrounds */}
+      <WavePattern color={theme.colors.sageGreen} opacity={0.08} />
+      <PatternBackground pattern="dots" color={theme.colors.teal} opacity={0.06} size="small" />
+      <PatternBackground pattern="zigzag" color={theme.colors.lavender} opacity={0.04} size="medium" />
 
-          <TextInput
-            style={styles.input}
-            placeholder="Password"
-            placeholderTextColor="#9CA3AF"
-            value={password}
-            onChangeText={setPassword}
-            secureTextEntry
-            autoComplete="password"
-          />
+      {/* Floating blobs for depth */}
+      <AnimatedBlob color={theme.colors.teal} size={250} opacity={0.15} shape="shape1" duration={28000} style={{ top: '-10%', right: '-20%' }} />
+      <AnimatedBlob color={theme.colors.lavender} size={200} opacity={0.18} shape="shape2" duration={32000} style={{ bottom: '-8%', left: '-15%' }} />
+      <AnimatedBlob color={theme.colors.slate} size={180} opacity={0.12} shape="shape3" duration={25000} style={{ top: '40%', left: '-12%' }} />
+      <AnimatedBlob color={theme.colors.peach} size={160} opacity={0.14} shape="shape4" duration={30000} style={{ bottom: '30%', right: '-10%' }} />
+      <AnimatedBlob color={theme.colors.mossGreen} size={140} opacity={0.16} shape="shape5" duration={26000} style={{ top: '20%', right: '85%' }} />
 
-          <TouchableOpacity
-            style={styles.button}
-            onPress={handleLogin}
-            disabled={isLoading}
-          >
-            {isLoading ? (
-              <ActivityIndicator color="#fff" />
-            ) : (
-              <Text style={styles.buttonText}>Login</Text>
-            )}
-          </TouchableOpacity>
-
-          <TouchableOpacity
-            onPress={() => navigation.navigate('Register')}
-            style={styles.linkButton}
-          >
-            <Text style={styles.linkText}>
-              Don't have an account?{' '}
-              <Text style={styles.linkTextBold}>Sign up</Text>
+      <KeyboardAvoidingView
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        style={styles.keyboardView}
+      >
+        <View style={styles.content}>
+          {/* Sugarbum branding */}
+          <View style={styles.brandContainer}>
+            <View style={styles.logoCircle}>
+              <Text style={styles.logoEmoji}>💕</Text>
+            </View>
+            <Text style={[theme.textStyles.h1, styles.title]}>Sugarbum</Text>
+            <Text style={[theme.textStyles.body, styles.subtitle]}>
+              Stay connected with your sugarbum
             </Text>
-          </TouchableOpacity>
+          </View>
+
+          {/* Login form */}
+          <View style={styles.form}>
+            <TextInput
+              style={[theme.textStyles.body, styles.input]}
+              placeholder="Email"
+              placeholderTextColor={theme.colors.mediumGray}
+              value={email}
+              onChangeText={setEmail}
+              autoCapitalize="none"
+              keyboardType="email-address"
+              autoComplete="email"
+            />
+
+            <TextInput
+              style={[theme.textStyles.body, styles.input]}
+              placeholder="Password"
+              placeholderTextColor={theme.colors.mediumGray}
+              value={password}
+              onChangeText={setPassword}
+              secureTextEntry
+              autoComplete="password"
+            />
+
+            <GentleButton
+              title={isLoading ? '...' : 'Login'}
+              onPress={handleLogin}
+              variant="primary"
+              size="large"
+              style={styles.loginButton}
+            />
+
+            <TouchableOpacity
+              onPress={() => navigation.navigate('Register')}
+              style={styles.linkButton}
+            >
+              <Text style={[theme.textStyles.bodySmall, styles.linkText]}>
+                Don't have an account?{' '}
+                <Text style={styles.linkTextBold}>Sign up</Text>
+              </Text>
+            </TouchableOpacity>
+          </View>
         </View>
-      </View>
-    </KeyboardAvoidingView>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.cream,
+  },
+  keyboardView: {
+    flex: 1,
   },
   content: {
     flex: 1,
     justifyContent: 'center',
-    paddingHorizontal: 24,
+    paddingHorizontal: theme.spacing['2xl'],
+  },
+  brandContainer: {
+    alignItems: 'center',
+    marginBottom: theme.spacing['3xl'],
+  },
+  logoCircle: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: theme.colors.dustyRose,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: theme.spacing.xl,
+    ...theme.shadows.level2,
+  },
+  logoEmoji: {
+    fontSize: 50,
   },
   title: {
-    fontSize: 48,
-    fontWeight: 'bold',
+    color: theme.colors.deepNavy,
     textAlign: 'center',
-    marginBottom: 8,
+    marginBottom: theme.spacing.xs,
   },
   subtitle: {
-    fontSize: 16,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
     textAlign: 'center',
-    marginBottom: 48,
   },
   form: {
     width: '100%',
   },
   input: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
-    marginBottom: 16,
-    fontSize: 16,
-    borderWidth: 1,
-    borderColor: '#E5E7EB',
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
+    marginBottom: theme.spacing.lg,
+    borderWidth: 2,
+    borderColor: theme.colors.lightGray,
+    color: theme.colors.charcoal,
+    ...theme.shadows.level1,
   },
-  button: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-    marginTop: 8,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
+  loginButton: {
+    marginTop: theme.spacing.md,
+    width: '100%',
   },
   linkButton: {
-    marginTop: 24,
+    marginTop: theme.spacing.xl,
     alignItems: 'center',
   },
   linkText: {
-    color: '#6B7280',
-    fontSize: 14,
+    color: theme.colors.mediumGray,
+    textAlign: 'center',
   },
   linkTextBold: {
-    color: '#8B5CF6',
-    fontWeight: '600',
+    color: theme.colors.dustyRose,
+    fontWeight: theme.typography.fontWeight.semibold,
   },
 });

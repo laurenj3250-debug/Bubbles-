@@ -8,8 +8,12 @@ import {
   ScrollView,
   Alert,
   ActivityIndicator,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import api from '../config/api';
+import { BlobCard, WavePattern } from '../components';
+import theme from '../theme';
 
 export default function PrivacyScreen({ navigation }) {
   const [settings, setSettings] = useState({
@@ -93,48 +97,66 @@ export default function PrivacyScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <TouchableOpacity onPress={() => navigation.goBack()}>
-            <Text style={styles.backButton}>‹ Back</Text>
-          </TouchableOpacity>
-          <Text style={styles.headerTitle}>Privacy Controls</Text>
-        </View>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <WavePattern color={theme.colors.sageGreen} opacity={0.08} />
         <View style={styles.loadingContainer}>
-          <ActivityIndicator size="large" color="#8B5CF6" />
+          <Text style={[theme.textStyles.h3, styles.loadingText]}>Loading...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <TouchableOpacity onPress={() => navigation.goBack()}>
-          <Text style={styles.backButton}>‹ Back</Text>
-        </TouchableOpacity>
-        <Text style={styles.headerTitle}>Privacy Controls</Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
 
-      <ScrollView style={styles.content}>
+      {/* Multi-layered backgrounds */}
+      <WavePattern color={theme.colors.mutedPurple} opacity={0.07} />
+      <PatternBackground pattern="triangles" color={theme.colors.softCoral} opacity={0.05} size="large" />
+      <PatternBackground pattern="grid" color={theme.colors.teal} opacity={0.04} size="medium" />
+
+      {/* Floating blobs */}
+      <AnimatedBlob color={theme.colors.mutedPurple} size={220} opacity={0.15} shape="shape4" duration={29000} style={{ top: '-9%', right: '-14%' }} />
+      <AnimatedBlob color={theme.colors.softCoral} size={185} opacity={0.17} shape="shape1" duration={27000} style={{ top: '25%', left: '-11%' }} />
+      <AnimatedBlob color={theme.colors.teal} size={165} opacity={0.14} shape="shape3" duration={31000} style={{ bottom: '18%', right: '-7%' }} />
+      <AnimatedBlob color={theme.colors.mossGreen} size={145} opacity={0.16} shape="shape5" duration={25000} style={{ bottom: '45%', left: '84%' }} />
+
+      <ScrollView
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
+      >
+        {/* Header */}
+        <View style={styles.header}>
+          <TouchableOpacity onPress={() => navigation.goBack()}>
+            <Text style={[theme.textStyles.body, styles.backButton]}>‹ Back</Text>
+          </TouchableOpacity>
+          <Text style={[theme.textStyles.h2, styles.headerTitle]}>Privacy Controls</Text>
+          <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
+            Control what you share
+          </Text>
+        </View>
+
         {isPaused && (
-          <View style={styles.pausedBanner}>
-            <Text style={styles.pausedIcon}>⏸️</Text>
-            <View style={styles.pausedInfo}>
-              <Text style={styles.pausedTitle}>Sharing Paused</Text>
-              <Text style={styles.pausedText}>
-                Until {new Date(settings.paused_until).toLocaleString()}
-              </Text>
+          <BlobCard style={styles.pausedBanner}>
+            <View style={styles.pausedContent}>
+              <Text style={styles.pausedIcon}>⏸️</Text>
+              <View style={styles.pausedInfo}>
+                <Text style={[theme.textStyles.body, styles.pausedTitle]}>Sharing Paused</Text>
+                <Text style={[theme.textStyles.bodySmall, styles.pausedText]}>
+                  Until {new Date(settings.paused_until).toLocaleString()}
+                </Text>
+              </View>
+              <TouchableOpacity onPress={resumeSharing}>
+                <Text style={[theme.textStyles.bodySmall, styles.pausedButton]}>Resume</Text>
+              </TouchableOpacity>
             </View>
-            <TouchableOpacity onPress={resumeSharing}>
-              <Text style={styles.pausedButton}>Resume</Text>
-            </TouchableOpacity>
-          </View>
+          </BlobCard>
         )}
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>What to Share</Text>
-          <Text style={styles.sectionDescription}>
+          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>What to Share</Text>
+          <Text style={[theme.textStyles.bodySmall, styles.sectionDescription]}>
             Control what information you share with your partner
           </Text>
 
@@ -142,8 +164,8 @@ export default function PrivacyScreen({ navigation }) {
             <View style={styles.settingInfo}>
               <Text style={styles.settingIcon}>📍</Text>
               <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Location</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[theme.textStyles.body, styles.settingTitle]}>Location</Text>
+                <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                   Share your location and weather
                 </Text>
               </View>
@@ -151,8 +173,8 @@ export default function PrivacyScreen({ navigation }) {
             <Switch
               value={settings.share_location}
               onValueChange={(value) => updateSetting('share_location', value)}
-              trackColor={{ false: '#D1D5DB', true: '#C4B5FD' }}
-              thumbColor={settings.share_location ? '#8B5CF6' : '#F3F4F6'}
+              trackColor={{ false: theme.colors.lightGray, true: theme.colors.sageGreen }}
+              thumbColor={settings.share_location ? theme.colors.deepNavy : theme.colors.offWhite}
             />
           </View>
 
@@ -245,13 +267,13 @@ export default function PrivacyScreen({ navigation }) {
         <View style={styles.infoBox}>
           <Text style={styles.infoTitle}>🔒 Your Privacy Matters</Text>
           <Text style={styles.infoText}>
-            Bubbles is designed with privacy in mind. You have full control over what you
+            Sugarbum is designed with privacy in mind. You have full control over what you
             share, and you can pause sharing anytime. Your data is never shared with
             anyone except your partner.
           </Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 

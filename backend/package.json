@@ -1,7 +1,7 @@
 {
-  "name": "bubbles-backend",
+  "name": "sugarbum-backend",
   "version": "1.0.0",
-  "description": "Backend API for Bubbles couples context-sharing app",
+  "description": "Backend API for Sugarbum couples context-sharing app",
   "main": "src/server.js",
   "scripts": {
     "start": "node src/config/migrate.js && node src/server.js",

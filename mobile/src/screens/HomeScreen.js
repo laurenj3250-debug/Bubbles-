@@ -7,9 +7,13 @@ import {
   RefreshControl,
   TouchableOpacity,
   Alert,
+  SafeAreaView,
+  StatusBar,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../config/api';
+import { BlobCard, StatusAvatar, GentleButton, WavePattern, AnimatedBlob, PatternBackground } from '../components';
+import theme from '../theme';
 
 export default function HomeScreen({ navigation }) {
   const [user, setUser] = useState(null);
@@ -76,159 +80,281 @@ export default function HomeScreen({ navigation }) {
 
   if (isLoading) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>🫧 Bubbles</Text>
-        </View>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
         <View style={styles.loadingContainer}>
-          <Text style={styles.loadingText}>Loading...</Text>
+          <Text style={[theme.textStyles.h3, styles.loadingText]}>Loading Sugarbum...</Text>
         </View>
-      </View>
+      </SafeAreaView>
     );
   }
 
   if (!partner) {
     return (
-      <View style={styles.container}>
-        <View style={styles.header}>
-          <Text style={styles.headerTitle}>🫧 Bubbles</Text>
-        </View>
+      <SafeAreaView style={styles.container}>
+        <StatusBar barStyle="dark-content" />
+        <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
         <ScrollView
           contentContainerStyle={styles.emptyContainer}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
           <Text style={styles.emptyIcon}>💑</Text>
-          <Text style={styles.emptyTitle}>No Partner Yet</Text>
-          <Text style={styles.emptyText}>
-            Connect with your partner to start sharing your daily moments
+          <Text style={[theme.textStyles.h2, styles.emptyTitle]}>No Partner Yet</Text>
+          <Text style={[theme.textStyles.body, styles.emptyText]}>
+            Connect with your sugarbum to start sharing your daily moments
           </Text>
-          <TouchableOpacity
-            style={styles.button}
+          <GentleButton
+            title="Find Your Partner"
             onPress={() => navigation.navigate('Partner')}
-          >
-            <Text style={styles.buttonText}>Find Your Partner</Text>
-          </TouchableOpacity>
+            variant="primary"
+            size="large"
+          />
         </ScrollView>
-      </View>
+      </SafeAreaView>
     );
   }
 
   return (
-    <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.headerTitle}>🫧 Bubbles</Text>
-        <Text style={styles.headerSubtitle}>Connected with {partner.name}</Text>
-      </View>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+
+      {/* Layered decorative backgrounds - multiple patterns */}
+      <WavePattern color={theme.colors.sageGreen} opacity={0.06} />
+      <PatternBackground pattern="dots" color={theme.colors.teal} opacity={0.05} size="small" />
+      <PatternBackground pattern="diagonal-lines" color={theme.colors.lavender} opacity={0.04} size="large" />
+      <PatternBackground pattern="cross-dots" color={theme.colors.slate} opacity={0.03} size="medium" />
+
+      {/* Floating animated blobs - many more for richness */}
+      <AnimatedBlob color={theme.colors.teal} size={220} opacity={0.18} shape="shape1" duration={25000} style={{ top: '-5%', right: '-15%' }} />
+      <AnimatedBlob color={theme.colors.lavender} size={180} opacity={0.2} shape="shape2" duration={30000} style={{ top: '15%', left: '-10%' }} />
+      <AnimatedBlob color={theme.colors.sageGreen} size={160} opacity={0.15} shape="shape3" duration={22000} style={{ top: '35%', right: '-8%' }} />
+      <AnimatedBlob color={theme.colors.slate} size={200} opacity={0.12} shape="shape4" duration={28000} style={{ top: '55%', left: '-12%' }} />
+      <AnimatedBlob color={theme.colors.mutedPurple} size={140} opacity={0.16} shape="shape5" duration={24000} style={{ bottom: '25%', right: '-5%' }} />
+      <AnimatedBlob color={theme.colors.peach} size={170} opacity={0.14} shape="shape2" duration={26000} style={{ bottom: '10%', left: '-8%' }} />
+      <AnimatedBlob color={theme.colors.mossGreen} size={130} opacity={0.18} shape="shape3" duration={23000} style={{ bottom: '40%', right: '80%' }} />
+      <AnimatedBlob color={theme.colors.deepTeal} size={150} opacity={0.13} shape="shape1" duration={27000} style={{ top: '70%', right: '-6%' }} />
 
       <ScrollView
-        style={styles.content}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
       >
-        {/* Location Card */}
-        {signals?.location ? (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>📍</Text>
-              <Text style={styles.cardTitle}>Location</Text>
-            </View>
-            <Text style={styles.cardValue}>
-              {signals.location.place_name || 'Unknown location'}
-            </Text>
-            {signals.location.weather_temp && (
-              <Text style={styles.cardDetail}>
-                {Math.round(signals.location.weather_temp)}°C •{' '}
-                {signals.location.weather_condition}
-              </Text>
-            )}
-          </View>
-        ) : (
-          <View style={styles.card}>
-            <Text style={styles.cardEmptyText}>Location not shared</Text>
-          </View>
-        )}
+        {/* Header */}
+        <View style={styles.header}>
+          <Text style={[theme.textStyles.h2, styles.headerTitle]}>
+            {partner.name}'s Now
+          </Text>
+          <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
+            See what they're up to
+          </Text>
+        </View>
 
-        {/* Activity Card */}
-        {signals?.activity?.total_steps ? (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>🏃</Text>
-              <Text style={styles.cardTitle}>Activity</Text>
-            </View>
-            <Text style={styles.cardValue}>
-              {signals.activity.total_steps.toLocaleString()} steps
-            </Text>
-            {signals.activity.total_distance && (
-              <Text style={styles.cardDetail}>
-                {(signals.activity.total_distance / 1000).toFixed(1)} km
-              </Text>
-            )}
+        {/* Main Status Card */}
+        <BlobCard style={styles.statusCard}>
+          <View style={styles.avatarContainer}>
+            <StatusAvatar
+              status="active"
+              size={140}
+              imageUrl={null}
+            />
           </View>
-        ) : null}
 
-        {/* Music Card */}
-        {signals?.music?.track_name ? (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>🎵</Text>
-              <Text style={styles.cardTitle}>
-                {signals.music.is_playing ? 'Now Playing' : 'Last Played'}
-              </Text>
-            </View>
-            <Text style={styles.cardValue}>{signals.music.track_name}</Text>
-            <Text style={styles.cardDetail}>{signals.music.artist_name}</Text>
-          </View>
-        ) : null}
+          <Text style={[theme.textStyles.h2, styles.partnerName]}>
+            {partner.name}
+          </Text>
 
-        {/* Device Context Card */}
-        {signals?.device && (
-          <View style={styles.card}>
-            <View style={styles.cardHeader}>
-              <Text style={styles.cardIcon}>📱</Text>
-              <Text style={styles.cardTitle}>Device</Text>
-            </View>
-            <Text style={styles.cardValue}>
-              Battery: {signals.device.battery_level}%
-              {signals.device.is_charging ? ' ⚡' : ''}
+          {/* Status Details */}
+          <View style={styles.statusDetails}>
+            {/* Location */}
+            {signals?.location ? (
+              <View style={styles.statusItem}>
+                <Text style={styles.statusEmoji}>📍</Text>
+                <Text style={[theme.textStyles.body, styles.statusText]}>
+                  {signals.location.place_name || 'Unknown location'}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Music */}
+            {signals?.music?.track_name ? (
+              <View style={styles.statusItem}>
+                <Text style={styles.statusEmoji}>🎵</Text>
+                <Text style={[theme.textStyles.body, styles.statusText]}>
+                  {signals.music.track_name}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Weather */}
+            {signals?.location?.weather_temp ? (
+              <View style={styles.statusItem}>
+                <Text style={styles.statusEmoji}>☀️</Text>
+                <Text style={[theme.textStyles.body, styles.statusText]}>
+                  {Math.round(signals.location.weather_temp)}°C, {signals.location.weather_condition}
+                </Text>
+              </View>
+            ) : null}
+
+            {/* Activity */}
+            {signals?.activity?.total_steps ? (
+              <View style={styles.statusItem}>
+                <Text style={styles.statusEmoji}>🏃</Text>
+                <Text style={[theme.textStyles.body, styles.statusText]}>
+                  {signals.activity.total_steps.toLocaleString()} steps today
+                </Text>
+              </View>
+            ) : null}
+
+            <Text style={[theme.textStyles.caption, styles.lastSeen]}>
+              Last updated just now
             </Text>
           </View>
-        )}
+        </BlobCard>
 
         {/* Quick Actions */}
-        <View style={styles.actionsContainer}>
-          <TouchableOpacity style={styles.actionButton} onPress={shareLocation}>
-            <Text style={styles.actionButtonText}>📍 Share Location</Text>
-          </TouchableOpacity>
+        <View style={styles.quickActions}>
+          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>
+            Quick Actions
+          </Text>
+
+          <View style={styles.actionButtons}>
+            <View style={styles.actionButton}>
+              <GentleButton
+                title="💌 Miss You"
+                onPress={() => Alert.alert('Miss You', 'Sending love to ' + partner.name + '!')}
+                variant="soft"
+                size="medium"
+              />
+            </View>
+
+            <View style={styles.actionButton}>
+              <GentleButton
+                title="📸 Send Photo"
+                onPress={shareLocation}
+                variant="secondary"
+                size="medium"
+              />
+            </View>
+          </View>
+        </View>
+
+        {/* Today's Moments Preview */}
+        <View style={styles.momentsSection}>
+          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>
+            Today's Moments
+          </Text>
+
+          <View style={styles.timelineDots}>
+            {[...Array(5)].map((_, i) => (
+              <View
+                key={i}
+                style={[
+                  styles.dot,
+                  i < 3 && styles.dotActive,
+                ]}
+              />
+            ))}
+          </View>
+
+          <Text style={[theme.textStyles.bodySmall, styles.momentsText]}>
+            3 moments shared today
+          </Text>
         </View>
       </ScrollView>
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.cream,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: theme.spacing['2xl'],
+    paddingBottom: theme.spacing['4xl'],
   },
   header: {
-    backgroundColor: '#fff',
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    marginBottom: theme.spacing.xl,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
+    color: theme.colors.deepNavy,
+    marginBottom: theme.spacing.xs,
   },
   headerSubtitle: {
-    fontSize: 14,
-    color: '#6B7280',
-    marginTop: 4,
+    color: theme.colors.mediumGray,
   },
-  content: {
+  statusCard: {
+    marginBottom: theme.spacing.xl,
+  },
+  avatarContainer: {
+    alignItems: 'center',
+    marginBottom: theme.spacing.lg,
+  },
+  partnerName: {
+    color: theme.colors.deepNavy,
+    textAlign: 'center',
+    marginBottom: theme.spacing.xl,
+  },
+  statusDetails: {
+    gap: theme.spacing.md,
+  },
+  statusItem: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: theme.spacing.sm,
+  },
+  statusEmoji: {
+    fontSize: 20,
+  },
+  statusText: {
+    color: theme.colors.charcoal,
     flex: 1,
-    padding: 16,
+  },
+  lastSeen: {
+    color: theme.colors.mediumGray,
+    textAlign: 'center',
+    marginTop: theme.spacing.md,
+  },
+  quickActions: {
+    marginBottom: theme.spacing.xl,
+  },
+  sectionTitle: {
+    color: theme.colors.deepNavy,
+    marginBottom: theme.spacing.lg,
+  },
+  actionButtons: {
+    gap: theme.spacing.md,
+  },
+  actionButton: {
+    width: '100%',
+  },
+  momentsSection: {
+    marginBottom: theme.spacing.xl,
+  },
+  timelineDots: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    gap: theme.spacing.sm,
+    marginBottom: theme.spacing.md,
+  },
+  dot: {
+    width: 12,
+    height: 12,
+    borderRadius: 6,
+    backgroundColor: theme.colors.lightGray,
+  },
+  dotActive: {
+    backgroundColor: theme.colors.sageGreen,
+  },
+  momentsText: {
+    color: theme.colors.mediumGray,
+    textAlign: 'center',
   },
   loadingContainer: {
     flex: 1,
@@ -237,7 +363,7 @@ const styles = StyleSheet.create({
   },
   loadingText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
   },
   emptyContainer: {
     flex: 1,
@@ -253,77 +379,12 @@ const styles = StyleSheet.create({
     fontSize: 24,
     fontWeight: 'bold',
     marginBottom: 8,
+    color: theme.colors.deepNavy,
   },
   emptyText: {
     fontSize: 16,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
     textAlign: 'center',
     marginBottom: 24,
-  },
-  button: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-  },
-  buttonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  card: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  cardHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 12,
-  },
-  cardIcon: {
-    fontSize: 24,
-    marginRight: 8,
-  },
-  cardTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#374151',
-  },
-  cardValue: {
-    fontSize: 20,
-    fontWeight: 'bold',
-    color: '#111827',
-    marginBottom: 4,
-  },
-  cardDetail: {
-    fontSize: 14,
-    color: '#6B7280',
-  },
-  cardEmptyText: {
-    fontSize: 14,
-    color: '#9CA3AF',
-    textAlign: 'center',
-  },
-  actionsContainer: {
-    marginTop: 8,
-    marginBottom: 24,
-  },
-  actionButton: {
-    backgroundColor: '#8B5CF6',
-    borderRadius: 12,
-    padding: 16,
-    alignItems: 'center',
-  },
-  actionButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
   },
 });

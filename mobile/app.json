@@ -1,19 +1,27 @@
 {
   "expo": {
-    "name": "Bubbles",
-    "slug": "bubbles",
+    "name": "Sugarbum",
+    "slug": "sugarbum",
     "version": "1.0.0",
     "orientation": "portrait",
     "userInterfaceStyle": "automatic",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.bubbles.app"
+      "bundleIdentifier": "com.sugarbum.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
-      "package": "com.bubbles.app"
+      "package": "com.sugarbum.app"
     },
     "web": {
       "bundler": "metro"
+    },
+    "extra": {
+      "eas": {
+        "projectId": "0d649eda-35e1-40be-b52e-1b4b15048794"
+      }
     }
   }
 }
