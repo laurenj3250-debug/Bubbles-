@@ -1,10 +1,20 @@
 import axios from 'axios';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
-// Change this to your Railway backend URL or use localhost for development
-const API_URL = __DEV__
-  ? 'http://localhost:3000/api'
-  : 'https://bubbles-production-ac7a.up.railway.app/api';
+// API URL - use relative path when served from same server, otherwise use full URL
+const getApiUrl = () => {
+  // Check if we're running on web
+  if (typeof window !== 'undefined') {
+    // Use relative path since web build is served from backend
+    return '/api';
+  }
+  // Mobile app in development
+  return __DEV__
+    ? 'http://localhost:3000/api'
+    : 'https://bubbles-production-ac7a.up.railway.app/api';
+};
+
+const API_URL = getApiUrl();
 
 const api = axios.create({
   baseURL: API_URL,
