@@ -30,3 +30,7 @@ build/
 index.html
 DEPLOY.md
 bubbles.zip
+
+# Database
+*.db
+backend/bubbles.db
