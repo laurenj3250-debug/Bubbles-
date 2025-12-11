@@ -11,6 +11,7 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Image,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
@@ -74,7 +75,11 @@ export default function LoginScreen({ navigation }) {
           {/* Sugarbum branding */}
           <View style={styles.brandContainer}>
             <View style={styles.logoCircle}>
-              <Text style={styles.logoEmoji}>💕</Text>
+              <Image
+                source={require('../../assets/icon.png')}
+                style={styles.logoImage}
+                resizeMode="cover"
+              />
             </View>
             <Text style={[theme.textStyles.h1, styles.title]}>Sugarbum</Text>
             <Text style={[theme.textStyles.body, styles.subtitle]}>
@@ -147,17 +152,16 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing['3xl'],
   },
   logoCircle: {
-    width: 100,
-    height: 100,
-    borderRadius: 50,
-    backgroundColor: theme.colors.dustyRose,
-    justifyContent: 'center',
-    alignItems: 'center',
+    width: 120,
+    height: 120,
+    borderRadius: 30, // Rounded square-ish
     marginBottom: theme.spacing.xl,
     ...theme.shadows.level2,
+    overflow: 'hidden',
   },
-  logoEmoji: {
-    fontSize: 50,
+  logoImage: {
+    width: '100%',
+    height: '100%',
   },
   title: {
     color: theme.colors.deepNavy,
