@@ -48,16 +48,37 @@ if (usePostgres) {
     query: (text, params) => {
       return new Promise((resolve, reject) => {
         try {
+          // Convert Postgres $1, $2, etc syntax to SQLite ?
+          // We must also reconstruct the params array to match the new order/count of ?
+          let sqliteText = text;
+          let sqliteParams = params;
+
+          if (params && params.length > 0) {
+            const newParams = [];
+            let foundPostgresParams = false;
+
+            sqliteText = text.replace(/\$(\d+)/g, (match, index) => {
+              // Postgres is 1-indexed, array is 0-indexed
+              foundPostgresParams = true;
+              newParams.push(params[parseInt(index) - 1]);
+              return '?';
+            });
+
+            if (foundPostgresParams) {
+              sqliteParams = newParams;
+            }
+          }
+
           // Handle different query types
-          if (text.trim().toUpperCase().startsWith('SELECT') ||
-            text.trim().toUpperCase().startsWith('RETURNING')) {
-            const stmt = sqlite.prepare(text);
-            const rows = params ? stmt.all(...params) : stmt.all();
+          if (sqliteText.trim().toUpperCase().startsWith('SELECT') ||
+            sqliteText.trim().toUpperCase().startsWith('RETURNING')) {
+            const stmt = sqlite.prepare(sqliteText);
+            const rows = sqliteParams ? stmt.all(...sqliteParams) : stmt.all();
             resolve({ rows, rowCount: rows.length });
-          } else if (text.trim().toUpperCase().includes('RETURNING')) {
+          } else if (sqliteText.trim().toUpperCase().includes('RETURNING')) {
             // INSERT/UPDATE with RETURNING
-            const stmt = sqlite.prepare(text);
-            const info = params ? stmt.run(...params) : stmt.run();
+            const stmt = sqlite.prepare(sqliteText);
+            const info = sqliteParams ? stmt.run(...sqliteParams) : stmt.run();
             // For RETURNING queries, we need to fetch the inserted/updated row
             const lastId = info.lastInsertRowid;
             if (lastId) {
@@ -69,8 +90,8 @@ if (usePostgres) {
             }
           } else {
             // INSERT/UPDATE/DELETE without RETURNING
-            const stmt = sqlite.prepare(text);
-            const info = params ? stmt.run(...params) : stmt.run();
+            const stmt = sqlite.prepare(sqliteText);
+            const info = sqliteParams ? stmt.run(...sqliteParams) : stmt.run();
             resolve({ rows: [], rowCount: info.changes });
           }
         } catch (error) {
@@ -99,7 +120,11 @@ if (usePostgres) {
             inTransaction = false;
             return { rows: [], rowCount: 0 };
           } else if (text === 'ROLLBACK') {
-            sqlite.prepare('ROLLBACK').run();
+            try {
+              sqlite.prepare('ROLLBACK').run();
+            } catch (e) {
+              // Ignore if no transaction is active
+            }
             inTransaction = false;
             return { rows: [], rowCount: 0 };
           }

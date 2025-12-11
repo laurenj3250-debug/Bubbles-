@@ -18,33 +18,35 @@ async function runTest() {
         console.log('1. Setting up test users in database...');
 
         // Clean up old test data
-        await pool.query('DELETE FROM users WHERE email IN ($1, $2)', [SENDER_EMAIL, RECEIVER_EMAIL]);
+        await pool.query('DELETE FROM users WHERE email IN (?, ?)', [SENDER_EMAIL, RECEIVER_EMAIL]);
 
         // Create Receiver
-        const receiverRes = await pool.query(
+        await pool.query(
             `INSERT INTO users (email, password_hash, name) 
-       VALUES ($1, $2, $3) RETURNING id`,
+       VALUES (?, ?, ?)`,
             [RECEIVER_EMAIL, 'hash', 'Test Receiver']
         );
+        const receiverRes = await pool.query('SELECT id FROM users WHERE email = ?', [RECEIVER_EMAIL]);
         const receiverId = receiverRes.rows[0].id;
 
         // Create Sender
-        const senderRes = await pool.query(
+        await pool.query(
             `INSERT INTO users (email, password_hash, name) 
-         VALUES ($1, $2, $3) RETURNING id`,
+         VALUES (?, ?, ?)`,
             [SENDER_EMAIL, 'hash', 'Test Sender']
         );
+        const senderRes = await pool.query('SELECT id FROM users WHERE email = ?', [SENDER_EMAIL]);
         const senderId = senderRes.rows[0].id;
 
         // Create Partnership
         await pool.query(
-            `INSERT INTO partnerships (user1_id, user2_id, status) VALUES ($1, $2, 'accepted')`,
+            `INSERT INTO partnerships (user1_id, user2_id, status) VALUES (?, ?, 'accepted')`,
             [senderId, receiverId]
         );
 
         // Add Push Token for Receiver
         await pool.query(
-            `INSERT INTO push_tokens (user_id, token, device_type) VALUES ($1, $2, 'ios')`,
+            `INSERT INTO push_tokens (user_id, token, device_type) VALUES (?, ?, 'ios')`,
             [receiverId, FAKE_TOKEN]
         );
 
@@ -61,7 +63,7 @@ async function runTest() {
         //  Actually, let's use the API for EVERYTHING to be safe about Auth.)
 
         // Cleaning up again to use API flow strictly
-        await pool.query('DELETE FROM users WHERE email IN ($1, $2)', [SENDER_EMAIL, RECEIVER_EMAIL]);
+        await pool.query('DELETE FROM users WHERE email IN (?, ?)', [SENDER_EMAIL, RECEIVER_EMAIL]);
 
         console.log('\n2. Registering users via API...');
 
@@ -84,7 +86,7 @@ async function runTest() {
         // 3. Setup Partnership & Token via API/DB mixed (since partner flow is multi-step)
         // Let's force it in DB to save time/complexity
         await pool.query(
-            `INSERT INTO partnerships (user1_id, user2_id, status) VALUES ($1, $2, 'accepted')`,
+            `INSERT INTO partnerships (user1_id, user2_id, status) VALUES (?, ?, 'accepted')`,
             [senderObjId, receiverObjId]
         );
 
