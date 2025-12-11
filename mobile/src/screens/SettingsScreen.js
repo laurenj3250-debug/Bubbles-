@@ -12,7 +12,7 @@ import {
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
-import { BlobCard, WavePattern } from '../components';
+import { BlobCard, WavePattern, AnimatedBlob, PatternBackground } from '../components';
 import theme from '../theme';
 
 export default function SettingsScreen({ navigation }) {

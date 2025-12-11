@@ -12,7 +12,7 @@ import {
   StatusBar,
 } from 'react-native';
 import api from '../config/api';
-import { BlobCard, WavePattern } from '../components';
+import { BlobCard, WavePattern, AnimatedBlob, PatternBackground } from '../components';
 import theme from '../theme';
 
 export default function PrivacyScreen({ navigation }) {
@@ -280,28 +280,28 @@ export default function PrivacyScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: theme.colors.background,
+    backgroundColor: theme.colors.cream,
+  },
+  scrollView: {
+    flex: 1,
+  },
+  scrollContent: {
+    padding: theme.spacing['2xl'],
+    paddingBottom: theme.spacing['4xl'],
   },
   header: {
-    backgroundColor: theme.colors.surface,
-    paddingTop: 60,
-    paddingBottom: 20,
-    paddingHorizontal: 24,
-    borderBottomWidth: 1,
-    borderBottomColor: theme.colors.lightGray,
+    marginBottom: theme.spacing.xl,
   },
   backButton: {
     fontSize: 18,
     color: theme.colors.primary,
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   headerTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
     color: theme.colors.deepNavy,
+    marginBottom: theme.spacing.xs,
   },
   headerSubtitle: {
-    fontSize: 14,
     color: theme.colors.mediumGray,
   },
   content: {
@@ -318,12 +318,11 @@ const styles = StyleSheet.create({
     color: theme.colors.mediumGray,
   },
   pausedBanner: {
-    backgroundColor: theme.colors.warning + '20', // Opacity hack or use withOpacity
-    borderRadius: 16,
-    padding: 16,
+    marginBottom: theme.spacing.xl,
+  },
+  pausedContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 24,
   },
   pausedIcon: {
     fontSize: 32,
@@ -335,8 +334,6 @@ const styles = StyleSheet.create({
   pausedTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: theme.colors.warning, // Hard to read? Need darker warning?
-    // Using deepNavy for text is safer
     color: theme.colors.deepNavy,
     marginBottom: 2,
   },
@@ -350,96 +347,88 @@ const styles = StyleSheet.create({
     fontSize: 14,
   },
   section: {
-    marginBottom: 32,
+    marginBottom: theme.spacing['2xl'],
   },
   sectionTitle: {
-    fontSize: 18,
-    fontWeight: 'bold',
     color: theme.colors.deepNavy,
-    marginBottom: 8,
+    marginBottom: theme.spacing.sm,
   },
   sectionDescription: {
-    fontSize: 14,
     color: theme.colors.mediumGray,
-    marginBottom: 16,
+    marginBottom: theme.spacing.lg,
   },
   settingRow: {
-    backgroundColor: theme.colors.surface,
-    borderRadius: 16,
-    padding: 16,
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 2,
+    marginBottom: theme.spacing.md,
+    borderWidth: 2,
+    borderColor: theme.colors.lightGray,
+    ...theme.shadows.level1,
   },
   settingInfo: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: theme.spacing.lg,
   },
   settingIcon: {
     fontSize: 28,
-    marginRight: 12,
+    marginRight: theme.spacing.md,
   },
   settingText: {
     flex: 1,
   },
   settingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
     color: theme.colors.deepNavy,
+    fontWeight: theme.typography.fontWeight.semibold,
     marginBottom: 2,
   },
   settingDescription: {
-    fontSize: 13,
     color: theme.colors.mediumGray,
   },
   pauseButton: {
-    backgroundColor: theme.colors.warning + '20',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: theme.colors.warning,
   },
   pauseButtonText: {
     color: theme.colors.deepNavy,
-    fontSize: 16,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   resumeButton: {
-    backgroundColor: theme.colors.success + '20',
-    borderRadius: 12,
-    padding: 16,
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.lg,
     alignItems: 'center',
     borderWidth: 2,
     borderColor: theme.colors.success,
   },
   resumeButtonText: {
     color: theme.colors.success,
-    fontSize: 16,
-    fontWeight: '600',
+    fontWeight: theme.typography.fontWeight.semibold,
   },
   infoBox: {
-    backgroundColor: theme.colors.primaryLight + '40',
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 32,
+    backgroundColor: theme.colors.offWhite,
+    borderRadius: theme.borderRadius.medium,
+    padding: theme.spacing.xl,
+    marginBottom: theme.spacing['2xl'],
+    borderWidth: 2,
+    borderColor: theme.colors.primaryLight,
+    ...theme.shadows.level1,
   },
   infoTitle: {
-    fontSize: 16,
-    fontWeight: '600',
     color: theme.colors.primary,
-    marginBottom: 8,
+    fontWeight: theme.typography.fontWeight.semibold,
+    marginBottom: theme.spacing.sm,
   },
   infoText: {
-    fontSize: 14,
     color: theme.colors.deepNavy,
     lineHeight: 20,
   },
