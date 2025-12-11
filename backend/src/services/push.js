@@ -13,32 +13,21 @@ const expo = new Expo();
  */
 async function sendPushToPartner(userId, title, body, data = {}) {
     try {
-        // 1. Find the partner's ID
-        const partnerRes = await pool.query(
-            `SELECT CASE
-         WHEN user1_id = $1 THEN user2_id
-         ELSE user1_id
-       END as partner_id
-       FROM partnerships
-       WHERE (user1_id = $1 OR user2_id = $1) AND status = 'accepted'`,
+        // Optimized: Single query to get partner's tokens
+        // logic: Find accepted partnership -> Get partner ID -> Get tokens
+        const tokenRes = await pool.query(
+            `SELECT pt.token
+             FROM partnerships p
+             JOIN push_tokens pt ON (
+               CASE WHEN p.user1_id = $1 THEN p.user2_id ELSE p.user1_id END = pt.user_id
+             )
+             WHERE (p.user1_id = $1 OR p.user2_id = $1)
+             AND p.status = 'accepted'`,
             [userId]
         );
 
-        const partnerId = partnerRes.rows[0]?.partner_id;
-
-        if (!partnerId) {
-            // console.log(`No partner found for user ${userId}, skipping push.`);
-            return;
-        }
-
-        // 2. Get partner's push token(s)
-        const tokenRes = await pool.query(
-            'SELECT token FROM push_tokens WHERE user_id = $1',
-            [partnerId]
-        );
-
         if (tokenRes.rows.length === 0) {
-            // console.log(`No push token for partner ${partnerId}, skipping push.`);
+            // console.log(`No reachable partner tokens found for user ${userId}`);
             return;
         }
 

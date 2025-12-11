@@ -226,44 +226,25 @@ Access the admin panel at **http://localhost:3000/admin.html**
 
 All routes (except auth) require `Authorization: Bearer <token>` header.
 
-## 🛣️ Build Roadmap
+## 🛣️ Roadmap: "Ambient Presence"
 
 ### ✅ Phase 1: Foundation (COMPLETE)
-- [x] Backend API with Railway configuration
-- [x] Database schema (SQLite + PostgreSQL)
-- [x] JWT authentication
-- [x] Admin panel for database management
-- [x] React Native Expo app shell
-- [x] Navigation & routing
-- [x] Auth screens (login/register)
-- [x] Partner linking flow
-- [x] Privacy controls UI
+- [x] Backend API + Database Adapter (SQLite/Postgres)
+- [x] Admin Panel
+- [x] User Auth & Partnership Linking
+- [x] Push Notifications Service
 
-### 🚧 Phase 2: Core Signals (Backend Complete)
-- [x] Database schema for all signals
-- [x] API routes for signal storage/retrieval
-- [x] Weather API integration (via OpenWeatherMap)
-- [x] Push notification sending (Expo)
-- [ ] Mobile implementation for location sharing
-- [ ] Background location tracking
-- [ ] Geofencing logic
+### 🚧 Phase 2: Core Signals & Mobile (Currently Active)
+- [x] Mobile App Config & Auto-IP Detection
+- [x] Mobile Push Token Registration
+- [x] Manual Location Sharing
+- [ ] **Background Sync** (Passive Location/Battery via `expo-task-manager`)
+- [ ] **Realtime Presence** (Transition endpoints to Socket.io)
 
-### 📋 Phase 3: Integrations (Next)
-- [ ] Spotify OAuth flow
-- [ ] Now-playing detection
-- [ ] HealthKit integration (iOS)
-- [ ] Google Fit integration (Android)
-- [ ] Calendar API integration
-
-### 🎨 Phase 4: Polish (Future)
-- [ ] Apple Watch complications
-- [ ] Android widgets
-- [ ] Commute detection
-- [ ] Photo sharing prompts
-- [ ] Daily digest notifications
-- [ ] Wi-Fi/Bluetooth context
-- [ ] Sunrise/sunset times
-- [ ] Air quality data
+### 📋 Phase 3: The "Killer Features"
+- [ ] **Home Screen Widget** (iOS/Android) for instant connection
+- [ ] **Haptic Touch** (Vibrate partner's phone via WebSocket)
+- [ ] **Spotify Sync** (Listen Along)
 
 ## 🔒 Privacy & Security
 

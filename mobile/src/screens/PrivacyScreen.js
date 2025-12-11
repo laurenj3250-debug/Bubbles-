@@ -191,8 +191,8 @@ export default function PrivacyScreen({ navigation }) {
             <Switch
               value={settings.share_activity}
               onValueChange={(value) => updateSetting('share_activity', value)}
-              trackColor={{ false: '#D1D5DB', true: '#C4B5FD' }}
-              thumbColor={settings.share_activity ? '#8B5CF6' : '#F3F4F6'}
+              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primaryLight }}
+              thumbColor={settings.share_activity ? theme.colors.primary : theme.colors.offWhite}
             />
           </View>
 
@@ -209,8 +209,8 @@ export default function PrivacyScreen({ navigation }) {
             <Switch
               value={settings.share_music}
               onValueChange={(value) => updateSetting('share_music', value)}
-              trackColor={{ false: '#D1D5DB', true: '#C4B5FD' }}
-              thumbColor={settings.share_music ? '#8B5CF6' : '#F3F4F6'}
+              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primaryLight }}
+              thumbColor={settings.share_music ? theme.colors.primary : theme.colors.offWhite}
             />
           </View>
 
@@ -227,8 +227,8 @@ export default function PrivacyScreen({ navigation }) {
             <Switch
               value={settings.share_calendar}
               onValueChange={(value) => updateSetting('share_calendar', value)}
-              trackColor={{ false: '#D1D5DB', true: '#C4B5FD' }}
-              thumbColor={settings.share_calendar ? '#8B5CF6' : '#F3F4F6'}
+              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primaryLight }}
+              thumbColor={settings.share_calendar ? theme.colors.primary : theme.colors.offWhite}
             />
           </View>
 
@@ -245,8 +245,8 @@ export default function PrivacyScreen({ navigation }) {
             <Switch
               value={settings.share_device_context}
               onValueChange={(value) => updateSetting('share_device_context', value)}
-              trackColor={{ false: '#D1D5DB', true: '#C4B5FD' }}
-              thumbColor={settings.share_device_context ? '#8B5CF6' : '#F3F4F6'}
+              trackColor={{ false: theme.colors.lightGray, true: theme.colors.primaryLight }}
+              thumbColor={settings.share_device_context ? theme.colors.primary : theme.colors.offWhite}
             />
           </View>
         </View>
@@ -280,24 +280,29 @@ export default function PrivacyScreen({ navigation }) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F9FAFB',
+    backgroundColor: theme.colors.background,
   },
   header: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface,
     paddingTop: 60,
     paddingBottom: 20,
     paddingHorizontal: 24,
     borderBottomWidth: 1,
-    borderBottomColor: '#E5E7EB',
+    borderBottomColor: theme.colors.lightGray,
   },
   backButton: {
     fontSize: 18,
-    color: '#8B5CF6',
+    color: theme.colors.primary,
     marginBottom: 8,
   },
   headerTitle: {
     fontSize: 24,
     fontWeight: 'bold',
+    color: theme.colors.deepNavy,
+  },
+  headerSubtitle: {
+    fontSize: 14,
+    color: theme.colors.mediumGray,
   },
   content: {
     flex: 1,
@@ -308,8 +313,12 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
+  loadingText: {
+    fontSize: 16,
+    color: theme.colors.mediumGray,
+  },
   pausedBanner: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: theme.colors.warning + '20', // Opacity hack or use withOpacity
     borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
@@ -326,15 +335,17 @@ const styles = StyleSheet.create({
   pausedTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#92400E',
+    color: theme.colors.warning, // Hard to read? Need darker warning?
+    // Using deepNavy for text is safer
+    color: theme.colors.deepNavy,
     marginBottom: 2,
   },
   pausedText: {
     fontSize: 13,
-    color: '#92400E',
+    color: theme.colors.deepNavy,
   },
   pausedButton: {
-    color: '#8B5CF6',
+    color: theme.colors.primary,
     fontWeight: '600',
     fontSize: 14,
   },
@@ -344,15 +355,16 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 18,
     fontWeight: 'bold',
+    color: theme.colors.deepNavy,
     marginBottom: 8,
   },
   sectionDescription: {
     fontSize: 14,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
     marginBottom: 16,
   },
   settingRow: {
-    backgroundColor: '#fff',
+    backgroundColor: theme.colors.surface,
     borderRadius: 16,
     padding: 16,
     flexDirection: 'row',
@@ -381,40 +393,41 @@ const styles = StyleSheet.create({
   settingTitle: {
     fontSize: 16,
     fontWeight: '600',
+    color: theme.colors.deepNavy,
     marginBottom: 2,
   },
   settingDescription: {
     fontSize: 13,
-    color: '#6B7280',
+    color: theme.colors.mediumGray,
   },
   pauseButton: {
-    backgroundColor: '#FEF3C7',
+    backgroundColor: theme.colors.warning + '20',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#F59E0B',
+    borderColor: theme.colors.warning,
   },
   pauseButtonText: {
-    color: '#92400E',
+    color: theme.colors.deepNavy,
     fontSize: 16,
     fontWeight: '600',
   },
   resumeButton: {
-    backgroundColor: '#D1FAE5',
+    backgroundColor: theme.colors.success + '20',
     borderRadius: 12,
     padding: 16,
     alignItems: 'center',
     borderWidth: 2,
-    borderColor: '#10B981',
+    borderColor: theme.colors.success,
   },
   resumeButtonText: {
-    color: '#065F46',
+    color: theme.colors.success,
     fontSize: 16,
     fontWeight: '600',
   },
   infoBox: {
-    backgroundColor: '#EDE9FE',
+    backgroundColor: theme.colors.primaryLight + '40',
     borderRadius: 16,
     padding: 20,
     marginBottom: 32,
@@ -422,12 +435,12 @@ const styles = StyleSheet.create({
   infoTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#5B21B6',
+    color: theme.colors.primary,
     marginBottom: 8,
   },
   infoText: {
     fontSize: 14,
-    color: '#5B21B6',
+    color: theme.colors.deepNavy,
     lineHeight: 20,
   },
 });

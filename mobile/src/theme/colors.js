@@ -3,10 +3,14 @@
 
 export const colors = {
   // Primary Colors
+  primary: '#8B5CF6',        // Main brand purple (Vibrant)
+  primaryLight: '#C4B5FD',   // Light purple for backgrounds/toggles
   dustyRose: '#D4A5A5',      // Muted rose, more sophisticated
   deepNavy: '#3D3B5E',       // Text, important CTAs, grounding
   sageGreen: '#5C8D7E',      // Active states, "online" indicators
   cream: '#FAF8F5',          // Warm neutral background
+  background: '#F9FAFB',     // App background (Light Gray)
+  surface: '#FFFFFF',        // Cards (White)
 
   // Accent Colors - More variety
   teal: '#4A9B8E',           // Location, movement
