@@ -8,10 +8,9 @@ const getApiUrl = () => {
     // Use relative path since web build is served from backend
     return '/api';
   }
-  // Mobile app in development
-  return __DEV__
-    ? 'http://localhost:3000/api'
-    : 'https://bubbles-production-ac7a.up.railway.app/api';
+  // Use production Railway backend (database is hosted there)
+  // For local development with local DB, change to: 'http://localhost:3000/api'
+  return 'https://bubbles-production-ac7a.up.railway.app/api';
 };
 
 const API_URL = getApiUrl();

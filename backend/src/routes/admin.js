@@ -1,0 +1,239 @@
+const express = require('express');
+const pool = require('../config/database');
+const { isSQLite, isPostgres } = require('../config/database');
+
+const router = express.Router();
+
+// Simple authentication check (basic protection)
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+
+const checkAdminAuth = (req, res, next) => {
+  const authHeader = req.headers.authorization;
+
+  console.log('Auth attempt - Header:', authHeader ? 'Present' : 'Missing');
+
+  if (!authHeader || !authHeader.startsWith('Basic ')) {
+    res.setHeader('WWW-Authenticate', 'Basic realm="Admin"');
+    return res.status(401).json({ error: 'Authentication required' });
+  }
+
+  const base64Credentials = authHeader.split(' ')[1];
+  const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
+  const [username, password] = credentials.split(':');
+
+  console.log('Checking password. Expected:', ADMIN_PASSWORD, 'Received:', password);
+
+  if (password !== ADMIN_PASSWORD) {
+    return res.status(401).json({ error: 'Invalid credentials' });
+  }
+
+  next();
+};
+
+// Config info (for debugging - remove in production)
+router.get('/config', (req, res) => {
+  res.json({
+    message: 'Admin panel configuration',
+    passwordSet: !!process.env.ADMIN_PASSWORD,
+    defaultPassword: process.env.ADMIN_PASSWORD ? 'Custom password set in .env' : 'admin123 (default)',
+    hint: process.env.ADMIN_PASSWORD ? 'Check your .env file for ADMIN_PASSWORD' : 'Use default password: admin123',
+    database: isSQLite ? 'SQLite' : 'PostgreSQL'
+  });
+});
+
+// Get all tables in database
+router.get('/tables', checkAdminAuth, async (req, res) => {
+  try {
+    let result;
+
+    if (isSQLite) {
+      // SQLite: query sqlite_master
+      result = await pool.query(`
+        SELECT name as table_name
+        FROM sqlite_master
+        WHERE type='table' AND name NOT LIKE 'sqlite_%'
+        ORDER BY name
+      `);
+    } else {
+      // PostgreSQL: use information_schema
+      result = await pool.query(`
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public'
+        ORDER BY table_name
+      `);
+    }
+
+    res.json({ tables: result.rows.map(row => row.table_name) });
+  } catch (error) {
+    console.error('Error fetching tables:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get data from a specific table
+router.get('/table/:tableName', checkAdminAuth, async (req, res) => {
+  try {
+    const { tableName } = req.params;
+    const limit = parseInt(req.query.limit) || 100;
+    const offset = parseInt(req.query.offset) || 0;
+
+    // Validate table name to prevent SQL injection
+    let validTables;
+    if (isSQLite) {
+      validTables = await pool.query(`
+        SELECT name as table_name
+        FROM sqlite_master
+        WHERE type='table' AND name = ?
+      `, [tableName]);
+    } else {
+      validTables = await pool.query(`
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = $1
+      `, [tableName]);
+    }
+
+    if (validTables.rows.length === 0) {
+      return res.status(404).json({ error: 'Table not found' });
+    }
+
+    // Get total count (works for both)
+    const countResult = await pool.query(`SELECT COUNT(*) as count FROM ${tableName}`);
+    const total = parseInt(countResult.rows[0].count);
+
+    // Get data
+    let dataResult;
+    if (isSQLite) {
+      dataResult = await pool.query(
+        `SELECT * FROM ${tableName} ORDER BY id DESC LIMIT ? OFFSET ?`,
+        [limit, offset]
+      );
+    } else {
+      dataResult = await pool.query(
+        `SELECT * FROM ${tableName} ORDER BY id DESC LIMIT $1 OFFSET $2`,
+        [limit, offset]
+      );
+    }
+
+    // Get column information
+    let columnsResult;
+    if (isSQLite) {
+      columnsResult = await pool.query(`PRAGMA table_info(${tableName})`);
+      columnsResult.rows = columnsResult.rows.map(col => ({
+        column_name: col.name,
+        data_type: col.type
+      }));
+    } else {
+      columnsResult = await pool.query(`
+        SELECT column_name, data_type
+        FROM information_schema.columns
+        WHERE table_name = $1
+        ORDER BY ordinal_position
+      `, [tableName]);
+    }
+
+    res.json({
+      table: tableName,
+      total,
+      limit,
+      offset,
+      columns: columnsResult.rows,
+      data: dataResult.rows
+    });
+  } catch (error) {
+    console.error('Error fetching table data:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Execute custom SQL query (read-only)
+router.post('/query', checkAdminAuth, async (req, res) => {
+  try {
+    const { sql } = req.body;
+
+    if (!sql) {
+      return res.status(400).json({ error: 'SQL query is required' });
+    }
+
+    // Only allow SELECT queries for safety
+    const trimmedSql = sql.trim().toUpperCase();
+    if (!trimmedSql.startsWith('SELECT')) {
+      return res.status(400).json({ error: 'Only SELECT queries are allowed' });
+    }
+
+    const result = await pool.query(sql);
+
+    res.json({
+      rows: result.rows,
+      rowCount: result.rowCount,
+      fields: result.fields?.map(f => ({ name: f.name, dataTypeID: f.dataTypeID })) || []
+    });
+  } catch (error) {
+    console.error('Error executing query:', error);
+    res.status(400).json({ error: error.message });
+  }
+});
+
+// Get database statistics
+router.get('/stats', checkAdminAuth, async (req, res) => {
+  try {
+    const stats = {};
+
+    // Get counts from each table
+    const tables = ['users', 'partnerships', 'privacy_settings', 'location_signals',
+      'activity_signals', 'music_signals', 'device_signals',
+      'calendar_signals', 'push_tokens', 'spotify_tokens', 'geofences'];
+
+    for (const table of tables) {
+      try {
+        const result = await pool.query(`SELECT COUNT(*) as count FROM ${table}`);
+        stats[table] = parseInt(result.rows[0].count);
+      } catch (err) {
+        stats[table] = 0;
+      }
+    }
+
+    res.json({ stats });
+  } catch (error) {
+    console.error('Error fetching stats:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Test database connection
+router.get('/health', checkAdminAuth, async (req, res) => {
+  try {
+    // Use database-agnostic query
+    const result = await pool.query('SELECT 1 as test');
+
+    let dbInfo = {};
+    if (isSQLite) {
+      const versionResult = await pool.query('SELECT sqlite_version() as version');
+      dbInfo = {
+        status: 'connected',
+        timestamp: new Date().toISOString(),
+        database: 'SQLite',
+        version: versionResult.rows[0].version
+      };
+    } else {
+      const versionResult = await pool.query('SELECT version()');
+      dbInfo = {
+        status: 'connected',
+        timestamp: new Date().toISOString(),
+        database: 'PostgreSQL',
+        version: versionResult.rows[0].version
+      };
+    }
+
+    res.json(dbInfo);
+  } catch (error) {
+    res.status(500).json({
+      status: 'error',
+      error: error.message
+    });
+  }
+});
+
+module.exports = router;
+

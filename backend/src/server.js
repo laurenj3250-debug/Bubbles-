@@ -14,6 +14,7 @@ const partnerRoutes = require('./routes/partners');
 const signalsRoutes = require('./routes/signals');
 const spotifyRoutes = require('./routes/spotify');
 const privacyRoutes = require('./routes/privacy');
+const adminRoutes = require('./routes/admin');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -43,7 +44,8 @@ app.use('/api/', limiter);
 // Health check
 app.get('/health', async (req, res) => {
   try {
-    await pool.query('SELECT NOW()');
+    // Use a database-agnostic query (1=1 works in both SQLite and PostgreSQL)
+    await pool.query('SELECT 1');
     res.json({
       status: 'healthy',
       timestamp: new Date().toISOString(),
@@ -64,6 +66,7 @@ app.use('/api/partners', partnerRoutes);
 app.use('/api/signals', signalsRoutes);
 app.use('/api/spotify', spotifyRoutes);
 app.use('/api/privacy', privacyRoutes);
+app.use('/api/admin', adminRoutes);
 
 // Serve the React Native Web app for all non-API routes
 app.get('*', (req, res, next) => {

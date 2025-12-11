@@ -2,6 +2,7 @@ const express = require('express');
 const pool = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 const axios = require('axios');
+const { sendPushToPartner } = require('../services/push');
 
 const router = express.Router();
 router.use(authenticate);
@@ -93,6 +94,15 @@ router.post('/location', async (req, res) => {
       ]
     );
 
+    // Send Push Notification
+    const senderName = req.user.name || 'Your partner';
+    const notificationBody = placeName
+      ? `📍 ${senderName} is at ${placeName}`
+      : `📍 ${senderName} updated their location`;
+
+    // Fire and forget (don't await)
+    sendPushToPartner(req.user.id, 'Location Update', notificationBody, { type: 'location' });
+
     res.json({
       message: 'Location shared',
       signal: result.rows[0]
@@ -159,6 +169,16 @@ router.post('/activity', async (req, res) => {
         heartRate, workoutType, workoutDuration
       ]
     );
+
+    // Send Push Notification
+    if (steps > 5000 || workoutType) {
+      const senderName = req.user.name || 'Your partner';
+      const body = workoutType
+        ? `🏃 ${senderName} just finished a ${workoutType} workout!`
+        : `🔥 ${senderName} just hit ${steps} steps!`;
+
+      sendPushToPartner(req.user.id, 'Activity Update', body, { type: 'activity' });
+    }
 
     res.json({
       message: 'Activity shared',
@@ -232,6 +252,17 @@ router.post('/music', async (req, res) => {
       ]
     );
 
+    // Send Push Notification
+    if (isPlaying) {
+      const senderName = req.user.name || 'Your partner';
+      sendPushToPartner(
+        req.user.id,
+        'Now Playing 🎵',
+        `${senderName} is listening to ${trackName} by ${artistName}`,
+        { type: 'music' }
+      );
+    }
+
     res.json({
       message: 'Music shared',
       signal: result.rows[0]
@@ -290,6 +321,12 @@ router.post('/device', async (req, res) => {
        RETURNING *`,
       [req.user.id, batteryLevel, isCharging, timezone, doNotDisturb]
     );
+
+    // Send Push only for low battery or charging
+    const senderName = req.user.name || 'Your partner';
+    if (batteryLevel && batteryLevel < 20 && !isCharging) {
+      sendPushToPartner(req.user.id, 'Low Battery 🪫', `${senderName}'s battery is at ${batteryLevel}%`, { type: 'device' });
+    }
 
     res.json({
       message: 'Device context shared',

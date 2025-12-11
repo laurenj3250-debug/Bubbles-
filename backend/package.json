@@ -9,21 +9,27 @@
     "migrate": "node src/config/migrate.js",
     "seed": "node src/config/seed.js"
   },
-  "keywords": ["couples", "location-sharing", "context-sharing", "railway"],
+  "keywords": [
+    "couples",
+    "location-sharing",
+    "context-sharing",
+    "railway"
+  ],
   "author": "",
   "license": "MIT",
   "dependencies": {
-    "express": "^4.18.2",
-    "pg": "^8.11.3",
-    "dotenv": "^16.3.1",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2",
-    "cors": "^2.8.5",
-    "helmet": "^7.1.0",
-    "express-rate-limit": "^7.1.5",
-    "node-cron": "^3.0.3",
     "axios": "^1.6.2",
+    "bcryptjs": "^2.4.3",
+    "better-sqlite3": "^12.5.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.3.1",
     "expo-server-sdk": "^3.7.0",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.2",
+    "node-cron": "^3.0.3",
+    "pg": "^8.11.3",
     "spotify-web-api-node": "^5.0.2"
   },
   "devDependencies": {

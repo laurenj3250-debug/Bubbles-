@@ -46,9 +46,10 @@ Bubbles/
 
 **Backend:**
 - Node.js + Express
-- PostgreSQL database
-- Railway deployment
+- **Database:** SQLite (local dev) / PostgreSQL (production)
+- Railway deployment ready
 - JWT authentication
+- Admin panel for database management
 - Spotify Web API integration
 - OpenWeatherMap API
 
@@ -65,10 +66,10 @@ Bubbles/
 ### Prerequisites
 
 - Node.js 18+
-- PostgreSQL (or Railway account)
-- Expo CLI: `npm install -g expo-cli`
-- Spotify Developer Account (for music features)
-- OpenWeatherMap API key (for weather)
+- **No database installation required** (uses SQLite by default)
+- Expo CLI (optional - can use `npx expo`)
+- Spotify Developer Account (optional, for music features)
+- OpenWeatherMap API key (optional, for weather)
 
 ### 1. Backend Setup
 
@@ -78,18 +79,19 @@ npm install
 
 # Configure environment variables
 cp .env.example .env
-# Edit .env with your credentials
+# Edit .env with your credentials (optional for local dev)
 
-# Run database migrations
+# Run database migrations (creates SQLite database)
 npm run migrate
 
 # Start the server
 npm run dev
 ```
 
-Backend runs on `http://localhost:3000`
+**Backend runs on:** `http://localhost:3000`  
+**Admin panel:** `http://localhost:3000/admin.html` (password: `admin123`)
 
-See [backend/README.md](backend/README.md) for detailed setup instructions.
+See [backend/README.md](backend/README.md) and [backend/DATABASE_SETUP.md](backend/DATABASE_SETUP.md) for detailed setup.
 
 ### 2. Mobile App Setup
 
@@ -148,6 +150,29 @@ See [backend/README.md](backend/README.md) for Railway deployment instructions.
    - Notification preferences
    - Logout
 
+## 🔧 Database Configuration
+
+The backend supports **two database options**:
+
+- **SQLite** (default) - Zero-config local development
+- **PostgreSQL** (Railway) - Production deployment
+
+The database adapter automatically detects which to use based on the `DATABASE_URL` environment variable.
+
+**To switch databases:** Use `configure-database.bat` or see [DATABASE_SETUP.md](backend/DATABASE_SETUP.md)
+
+## 🛠️ Admin Panel
+
+Access the admin panel at **http://localhost:3000/admin.html**
+
+**Features:**
+- View all database tables and data
+- Execute SQL queries
+- Monitor user registrations
+- Database statistics dashboard
+
+**Default Password:** `admin123` (configurable via `ADMIN_PASSWORD` in `.env`)
+
 ## 🗄️ Database Schema
 
 ### Core Tables
@@ -205,20 +230,23 @@ All routes (except auth) require `Authorization: Bearer <token>` header.
 
 ### ✅ Phase 1: Foundation (COMPLETE)
 - [x] Backend API with Railway configuration
-- [x] PostgreSQL database schema
+- [x] Database schema (SQLite + PostgreSQL)
 - [x] JWT authentication
+- [x] Admin panel for database management
 - [x] React Native Expo app shell
 - [x] Navigation & routing
 - [x] Auth screens (login/register)
 - [x] Partner linking flow
 - [x] Privacy controls UI
 
-### 🚧 Phase 2: Core Signals (In Progress)
-- [ ] Manual location sharing
-- [ ] Weather API integration
+### 🚧 Phase 2: Core Signals (Backend Complete)
+- [x] Database schema for all signals
+- [x] API routes for signal storage/retrieval
+- [x] Weather API integration (via OpenWeatherMap)
+- [x] Push notification sending (Expo)
+- [ ] Mobile implementation for location sharing
 - [ ] Background location tracking
-- [ ] Geofencing setup
-- [ ] Push notifications
+- [ ] Geofencing logic
 
 ### 📋 Phase 3: Integrations (Next)
 - [ ] Spotify OAuth flow
@@ -310,7 +338,14 @@ See [Expo EAS Build docs](https://docs.expo.dev/build/introduction/) for details
 
 ```env
 PORT=3000
-DATABASE_URL=postgresql://...
+NODE_ENV=development
+
+# Database (leave blank for SQLite, set for PostgreSQL)
+# DATABASE_URL=postgresql://...
+
+# Admin Panel
+ADMIN_PASSWORD=admin123
+
 JWT_SECRET=your-secret
 SPOTIFY_CLIENT_ID=...
 SPOTIFY_CLIENT_SECRET=...

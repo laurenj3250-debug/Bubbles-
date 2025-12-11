@@ -5,8 +5,9 @@ Backend API for the Bubbles couples context-sharing mobile app. Built with Node.
 ## 🚀 Tech Stack
 
 - **Node.js** + **Express** - REST API server
-- **PostgreSQL** - Primary database
+- **Database** - SQLite (local) / PostgreSQL (production)
 - **JWT** - Authentication
+- **Admin Panel** - Database management interface
 - **Spotify Web API** - Music integration
 - **OpenWeatherMap API** - Weather data
 - **Expo Push Notifications** - Mobile notifications
@@ -66,8 +67,13 @@ npm install
 Copy `.env.example` to `.env` and fill in:
 
 ```env
-# Database (Railway provides this automatically)
-DATABASE_URL=postgresql://user:password@host:5432/bubbles
+# Database Configuration
+# For LOCAL DEVELOPMENT: Leave DATABASE_URL blank or comment it out to use SQLite
+# For RAILWAY/PRODUCTION: Set DATABASE_URL to your Railway PostgreSQL connection string
+# DATABASE_URL=postgresql://user:password@host:5432/bubbles
+
+# Admin Panel (optional)
+ADMIN_PASSWORD=admin123
 
 # JWT Secret (generate a secure random string)
 JWT_SECRET=your-super-secret-jwt-key
@@ -97,6 +103,20 @@ npm run dev
 ```
 
 Server runs on `http://localhost:3000`
+
+### 5. Access Admin Panel
+Visit `http://localhost:3000/admin.html`
+- Default password: `admin123`
+- Inspect tables, run queries, and check health status.
+
+## 🗄️ Database Configuration
+
+This backend supports **dual database modes**:
+
+1.  **SQLite (Default)**: Zero-configuration, file-based database for local development. Data is stored in `backend/bubbles.db`.
+2.  **PostgreSQL**: For production (Railway) or local PostgreSQL instances.
+
+To switch, use `../configure-database.bat` or edit `.env`. See `DATABASE_SETUP.md` for details.
 
 ## 🚂 Railway Deployment
 
