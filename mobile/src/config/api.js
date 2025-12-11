@@ -1,16 +1,37 @@
 import axios from 'axios';
+import Constants from 'expo-constants';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
 // API URL - use relative path when served from same server, otherwise use full URL
 const getApiUrl = () => {
   // Check if we're running on web
-  if (typeof window !== 'undefined') {
-    // Use relative path since web build is served from backend
+  if (typeof window !== 'undefined' && window.document) {
+    // Use relative path for web
     return '/api';
   }
-  // Use production Railway backend (database is hosted there)
-  // For local development with local DB, change to: 'http://localhost:3000/api'
-  return 'https://bubbles-production-ac7a.up.railway.app/api';
+
+  // dev: Use local backend
+  // Smart detection for Physical Device or Emulator via Expo Go
+  // This gets the IP of the computer running Metro bundler
+  const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
+  const localhost = debuggerHost?.split(':')[0] || 'localhost';
+
+  // For Android Emulator, localhost is 10.0.2.2 usually, but if using hostUri it might be the LAN IP.
+  // If running in Emulator, hostUri might return the LAN IP too.
+  // Let is just use the deteced host IP, fallback to localhost.
+
+  if (debuggerHost) {
+    return `http://${localhost}:3000/api`;
+  }
+
+  // Fallback for independent builds or when debuggerHost is missing
+  const Platform = require('react-native').Platform;
+  const fallbackHost = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
+
+  return `http://${fallbackHost}:3000/api`;
+
+  // Production Railway URL (Uncomment for production)
+  // return 'https://bubbles-production-ac7a.up.railway.app/api';
 };
 
 const API_URL = getApiUrl();

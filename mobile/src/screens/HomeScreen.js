@@ -10,6 +10,7 @@ import {
   SafeAreaView,
   StatusBar,
 } from 'react-native';
+import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../config/api';
 import { BlobCard, StatusAvatar, GentleButton, WavePattern, AnimatedBlob, PatternBackground } from '../components';
@@ -21,6 +22,7 @@ export default function HomeScreen({ navigation }) {
   const [signals, setSignals] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isSharing, setIsSharing] = useState(false);
 
   useEffect(() => {
     loadData();
@@ -71,10 +73,47 @@ export default function HomeScreen({ navigation }) {
 
   const shareLocation = async () => {
     try {
-      // This is a simple placeholder - full implementation would use expo-location
-      Alert.alert('Location Sharing', 'Location sharing feature coming soon!');
+      setIsSharing(true);
+
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Permission to access location was denied');
+        return;
+      }
+
+      const location = await Location.getCurrentPositionAsync({});
+
+      // Get readable address
+      let placeName = '';
+      try {
+        const address = await Location.reverseGeocodeAsync({
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude
+        });
+
+        if (address.length > 0) {
+          const addr = address[0];
+          placeName = addr.name || addr.street || addr.city;
+        }
+      } catch (e) {
+        console.log('Geocoding failed', e);
+      }
+
+      await api.post('/signals/location', {
+        latitude: location.coords.latitude,
+        longitude: location.coords.longitude,
+        accuracy: location.coords.accuracy,
+        placeName: placeName || 'Unknown Location',
+        placeType: 'current'
+      });
+
+      Alert.alert('📍 Shared', 'Your location has been sent to your partner!');
+
     } catch (error) {
       console.error('Share location error:', error);
+      Alert.alert('Error', 'Failed to share location');
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -231,7 +270,7 @@ export default function HomeScreen({ navigation }) {
 
             <View style={styles.actionButton}>
               <GentleButton
-                title="📸 Send Photo"
+                title={isSharing ? "Sending..." : "📍 Share Location"}
                 onPress={shareLocation}
                 variant="secondary"
                 size="medium"

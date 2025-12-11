@@ -15,6 +15,7 @@ import PrivacyScreen from './src/screens/PrivacyScreen';
 
 // Context
 import { AuthContext } from './src/context/AuthContext';
+import { registerForPushNotificationsAsync } from './src/services/notifications';
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -65,6 +66,12 @@ export default function App() {
     // Check if user is already logged in
     checkAuth();
   }, []);
+
+  useEffect(() => {
+    if (userToken) {
+      registerForPushNotificationsAsync().catch(err => console.log('Push register failed', err));
+    }
+  }, [userToken]);
 
   const checkAuth = async () => {
     try {
