@@ -14,9 +14,9 @@ export const StatusAvatar = ({
 }) => {
   const statusColors = {
     active: [theme.colors.sageGreen, theme.colors.teal],
-    away: [theme.colors.warmYellow, theme.colors.coralPink],
-    busy: [theme.colors.dustyRose, theme.colors.coralPink],
-    sleeping: [theme.colors.lightLavender, theme.colors.dustyRose],
+    away: [theme.colors.warmYellow, theme.colors.softCoral],
+    busy: [theme.colors.dustyRose, theme.colors.softCoral],
+    sleeping: [theme.colors.lavender, theme.colors.dustyRose],
   };
 
   const gradientColors = statusColors[status] || statusColors.active;
