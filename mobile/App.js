@@ -12,6 +12,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import PartnerScreen from './src/screens/PartnerScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import PrivacyScreen from './src/screens/PrivacyScreen';
+import CapsuleScreen from './src/screens/CapsuleScreen'; // [NEW]
 import './src/services/LocationTask'; // Register background task globally
 
 // Context
@@ -138,6 +139,7 @@ export default function App() {
             <>
               <Stack.Screen name="App" component={AppTabs} />
               <Stack.Screen name="Privacy" component={PrivacyScreen} />
+              <Stack.Screen name="Capsule" component={CapsuleScreen} />
             </>
           )}
         </Stack.Navigator>

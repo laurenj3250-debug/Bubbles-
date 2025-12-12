@@ -68,6 +68,10 @@ app.use('/api/signals', signalsRoutes);
 app.use('/api/spotify', spotifyRoutes);
 app.use('/api/privacy', privacyRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/capsules', capsuleRoutes); // [NEW]
+
+// Start Cron Jobs
+require('./jobs/cron'); // [NEW]
 
 // Serve the React Native Web app for all non-API routes
 app.get('*', (req, res, next) => {

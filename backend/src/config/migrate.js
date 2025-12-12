@@ -170,6 +170,19 @@ const createTables = async () => {
         )
       `);
 
+      // Daily Capsules
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS daily_capsules (
+          id INTEGER PRIMARY KEY AUTOINCREMENT,
+          partnership_id INTEGER REFERENCES partnerships(id) ON DELETE CASCADE,
+          date DATE DEFAULT CURRENT_DATE,
+          content TEXT, -- JSON stored as text in SQLite
+          stats TEXT,   -- JSON stored as text in SQLite
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(partnership_id, date)
+        )
+      `);
+
       // Create indexes
       await client.query(`
         CREATE INDEX IF NOT EXISTS idx_location_signals_user_timestamp
@@ -184,6 +197,11 @@ const createTables = async () => {
       await client.query(`
         CREATE INDEX IF NOT EXISTS idx_music_signals_user_timestamp
         ON music_signals(user_id, timestamp DESC)
+      `);
+
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_daily_capsules_partnership_date
+        ON daily_capsules(partnership_id, date DESC)
       `);
 
     } else {
@@ -350,6 +368,18 @@ const createTables = async () => {
           expires_at TIMESTAMP NOT NULL,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+        )
+      `);
+
+      await client.query(`
+        CREATE TABLE IF NOT EXISTS daily_capsules (
+          id SERIAL PRIMARY KEY,
+          partnership_id INTEGER REFERENCES partnerships(id) ON DELETE CASCADE,
+          date DATE DEFAULT CURRENT_DATE,
+          content JSONB,
+          stats JSONB,
+          created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+          UNIQUE(partnership_id, date)
         )
       `);
 

@@ -233,12 +233,19 @@ export default function HomeScreen({ navigation }) {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={[theme.textStyles.h2, styles.headerTitle]}>
-            {partner.display_name || partner.name}'s Now
-          </Text>
-          <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
-            See what they're up to
-          </Text>
+          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+            <View>
+              <Text style={[theme.textStyles.h2, styles.headerTitle]}>
+                {partner.display_name || partner.name}'s Now
+              </Text>
+              <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
+                See what they're up to
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => navigation.navigate('Capsule')} style={{ padding: 8 }}>
+              <Text style={{ fontSize: 28 }}>💊</Text>
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Main Status Card */}
