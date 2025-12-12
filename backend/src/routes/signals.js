@@ -332,6 +332,42 @@ router.get('/music/partner', async (req, res) => {
   }
 });
 
+// ============= MISS YOU SIGNAL =============
+
+// Send "Miss You" Love Bomb
+router.post('/miss-you', async (req, res) => {
+  try {
+    const partnerId = await getPartnerId(req.user.id);
+    if (!partnerId) {
+      return res.status(404).json({ error: 'No partner found' });
+    }
+
+    // 1. Update Firebase for Realtime Trigger (The "Love Bomb")
+    if (db) {
+      db.ref(`users/${partnerId}/inbox/miss_you`).set({
+        senderId: req.user.id,
+        timestamp: Date.now(),
+        type: 'love_bomb'
+      }).catch(err => console.error('Firebase miss-you write error:', err.message));
+    }
+
+    // 2. Send Push Notification (High Priority)
+    const senderName = req.user.name || 'Your partner';
+    sendPushToPartner(
+      req.user.id,
+      `❤️ Miss You!`,
+      `${senderName} is sending you some love. Open the app!`,
+      { type: 'miss_you', priority: 'high' }
+    );
+
+    res.json({ message: 'Love sent!' });
+
+  } catch (error) {
+    console.error('Miss you error:', error);
+    res.status(500).json({ error: 'Failed to send love' });
+  }
+});
+
 // ============= DEVICE CONTEXT =============
 
 // Send device context

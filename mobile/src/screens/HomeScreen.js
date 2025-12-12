@@ -15,6 +15,7 @@ import api from '../config/api';
 import { database } from '../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
 import { GentleButton, WavePattern, AnimatedBlob, PatternBackground, StatusCard, QuickActions } from '../components';
+import { LoveBombOverlay } from '../components/LoveBombOverlay';
 import theme from '../theme';
 
 export default function HomeScreen({ navigation }) {
@@ -86,6 +87,31 @@ export default function HomeScreen({ navigation }) {
     // Cleanup listener on unmount
     return () => off(statusRef);
   }, [partner]);
+
+  // Firebase listener for Love Bombs (Miss You)
+  const [showLoveBomb, setShowLoveBomb] = useState(false);
+  const lastBombTime = React.useRef(0);
+
+  useEffect(() => {
+    if (!partner) return;
+    const inboxRef = ref(database, `users/${user.id}/inbox/miss_you`);
+
+    const unsubscribe = onValue(inboxRef, (snapshot) => {
+      const data = snapshot.val();
+      if (data && data.timestamp > lastBombTime.current) {
+        // Only show if it's a new signal (timestamp > last seen)
+        // And prevent showing it immediately on load if it's old (e.g. > 1 min ago)
+        const isRecent = Date.now() - data.timestamp < 60000;
+
+        if (isRecent) {
+          setShowLoveBomb(true);
+        }
+        lastBombTime.current = data.timestamp;
+      }
+    });
+
+    return () => off(inboxRef);
+  }, [user, partner]);
 
   const fetchPartner = async () => {
     try {
@@ -286,6 +312,10 @@ export default function HomeScreen({ navigation }) {
           </Text>
         </View>
       </ScrollView>
+      <LoveBombOverlay
+        isVisible={showLoveBomb}
+        onDismiss={() => setShowLoveBomb(false)}
+      />
     </SafeAreaView>
   );
 }

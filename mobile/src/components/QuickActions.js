@@ -1,7 +1,4 @@
-import React, { memo } from 'react';
-import { View, Text, StyleSheet, Alert } from 'react-native';
-import { GentleButton } from './GentleButton';
-import theme from '../theme';
+import { MissYouButton } from './MissYouButton';
 
 export const QuickActions = memo(({ partnerName, onShareLocation, isSharing }) => {
     return (
@@ -12,12 +9,7 @@ export const QuickActions = memo(({ partnerName, onShareLocation, isSharing }) =
 
             <View style={styles.actionButtons}>
                 <View style={styles.actionButton}>
-                    <GentleButton
-                        title="💌 Miss You"
-                        onPress={() => Alert.alert('Miss You', 'Sending love to ' + partnerName + '!')}
-                        variant="soft"
-                        size="medium"
-                    />
+                    <MissYouButton partnerName={partnerName} />
                 </View>
 
                 <View style={styles.actionButton}>
