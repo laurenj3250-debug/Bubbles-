@@ -1,4 +1,8 @@
+import React, { memo } from 'react';
+import { View, Text, StyleSheet } from 'react-native';
 import { MissYouButton } from './MissYouButton';
+import { GentleButton } from './GentleButton';
+import theme from '../theme';
 
 export const QuickActions = memo(({ partnerName, onShareLocation, isSharing }) => {
     return (

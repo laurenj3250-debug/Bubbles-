@@ -8,69 +8,17 @@ import theme from '../theme';
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
 const THROTTLE_MS = 100;
 
-export const TouchOverlay = ({ userId, partnerId }) => {
+export const TouchOverlay = ({ userId, partnerId, myPosition }) => {
     // Local State
     const [partnerPos, setPartnerPos] = useState(null);
-    const [myPos, setMyPos] = useState(null);
     const [isTouching, setIsTouching] = useState(false);
-
-    // Refs for throttling
-    const lastUpdate = useRef(0);
 
     // Animations
     const partnerAnim = useRef(new Animated.ValueXY({ x: -100, y: -100 })).current;
     const sparkScale = useRef(new Animated.Value(0)).current;
 
-    // 1. Setup PanResponder for MY touches
-    const panResponder = useRef(
-        PanResponder.create({
-            onStartShouldSetPanResponder: () => true,
-            onStartShouldSetPanResponderCapture: () => false, // Let children handle touches if they want?
-            // Actually, we want to overlay everything but allowing pass-through is hard with PanResponder.
-            // For now, we'll try "box-none" on container and capture touches. 
-            // If this blocks buttons, we might need a "Touch Mode" toggle. 
-            // For "Savant" feel, let's try to pass touches through but track them? 
-            // React Native PanResponder prevents pass-through if it claims logic.
-            // Alternative: A dedicated area or "Touch Mode". 
-            // Let's stick to standard behavior: If you touch, we track. 
-            // If it blocks UI, we will fix in "Integration".
-
-            onPanResponderGrant: (evt) => {
-                updateMyPosition(evt.nativeEvent.pageX, evt.nativeEvent.pageY);
-            },
-            onPanResponderMove: (evt) => {
-                updateMyPosition(evt.nativeEvent.pageX, evt.nativeEvent.pageY);
-            },
-            onPanResponderRelease: () => {
-                setMyPos(null);
-                pushToFirebase(null);
-            },
-            onPanResponderTerminate: () => {
-                setMyPos(null);
-                pushToFirebase(null);
-            },
-        })
-    ).current;
-
-    // 2. Throttle & Push to Firebase
-    const updateMyPosition = (x, y) => {
-        setMyPos({ x, y });
-        const now = Date.now();
-        if (now - lastUpdate.current > THROTTLE_MS) {
-            pushToFirebase({ x, y });
-            lastUpdate.current = now;
-        }
-    };
-
-    const pushToFirebase = (pos) => {
-        if (!userId) return;
-        const refPath = `users/${userId}/status/touch`;
-        if (pos) {
-            set(ref(database, refPath), { ...pos, timestamp: Date.now() });
-        } else {
-            set(ref(database, refPath), null);
-        }
-    };
+    // Derived myPos from prop for compatibility with existing logic
+    const myPos = myPosition;
 
     // 3. Listen to Partner
     useEffect(() => {

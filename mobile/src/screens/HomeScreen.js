@@ -374,7 +374,7 @@ export default function HomeScreen({ navigation }) {
         </View>
       </ScrollView>
       {/* Digital Touch Visuals (Always render so we can see partner) */}
-      <TouchOverlay userId={user.id} partnerId={partner?.id} />
+      <TouchOverlay userId={user.id} partnerId={partner?.id} myPosition={myTouchPos} />
 
       <LoveBombOverlay
         isVisible={showLoveBomb}
