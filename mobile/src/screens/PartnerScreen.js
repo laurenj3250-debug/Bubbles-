@@ -11,10 +11,28 @@ import {
   RefreshControl,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
 import api from '../config/api';
 import { BlobCard, GentleButton, WavePattern, AnimatedBlob, PatternBackground } from '../components';
 import theme from '../theme';
+
+// Web-compatible alert helper
+const showAlert = (title, message, buttons) => {
+  if (Platform.OS === 'web') {
+    if (buttons && buttons.length > 1) {
+      // Confirmation dialog
+      if (window.confirm(`${title}\n\n${message}`)) {
+        const confirmButton = buttons.find(b => b.style !== 'cancel');
+        if (confirmButton?.onPress) confirmButton.onPress();
+      }
+    } else {
+      window.alert(`${title}\n\n${message}`);
+    }
+  } else {
+    Alert.alert(title, message, buttons);
+  }
+};
 
 export default function PartnerScreen({ navigation }) {
   const [partner, setPartner] = useState(null);
@@ -64,7 +82,7 @@ export default function PartnerScreen({ navigation }) {
 
   const sendPartnerRequest = async () => {
     if (!partnerEmail.trim()) {
-      Alert.alert('Error', 'Please enter your partner\'s email');
+      showAlert('Error', 'Please enter your partner\'s email');
       return;
     }
 
@@ -75,11 +93,11 @@ export default function PartnerScreen({ navigation }) {
         partnerEmail: partnerEmail.trim(),
       });
 
-      Alert.alert('Success', 'Partner request sent!');
+      showAlert('Success', 'Partner request sent!');
       setPartnerEmail('');
     } catch (error) {
       console.error('Send request error:', error);
-      Alert.alert(
+      showAlert(
         'Error',
         error.response?.data?.error || 'Failed to send partner request'
       );
@@ -93,19 +111,19 @@ export default function PartnerScreen({ navigation }) {
       await api.post(`/partners/${partnershipId}/respond`, { accept });
 
       if (accept) {
-        Alert.alert('Success', 'You are now connected with your partner!');
+        showAlert('Success', 'You are now connected with your partner!');
       }
 
       // Refresh data
       await loadData();
     } catch (error) {
       console.error('Respond to request error:', error);
-      Alert.alert('Error', 'Failed to respond to request');
+      showAlert('Error', 'Failed to respond to request');
     }
   };
 
   const removePartner = () => {
-    Alert.alert(
+    showAlert(
       'Remove Partner',
       'Are you sure you want to disconnect from your partner?',
       [
@@ -116,11 +134,11 @@ export default function PartnerScreen({ navigation }) {
           onPress: async () => {
             try {
               await api.delete('/partners/current');
-              Alert.alert('Success', 'Partnership removed');
+              showAlert('Success', 'Partnership removed');
               setPartner(null);
             } catch (error) {
               console.error('Remove partner error:', error);
-              Alert.alert('Error', 'Failed to remove partner');
+              showAlert('Error', 'Failed to remove partner');
             }
           },
         },
