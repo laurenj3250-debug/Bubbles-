@@ -374,11 +374,15 @@ router.post('/miss-you', async (req, res) => {
     }
 
     // 1. Update Firebase for Realtime Trigger (The "Love Bomb")
-    writeToFirebaseWithRetry(`users/${partnerId}/inbox/miss_you`, {
+    const firebaseWriteSuccess = await writeToFirebaseWithRetry(`users/${partnerId}/inbox/miss_you`, {
       senderId: req.user.id,
       timestamp: Date.now(),
       type: 'love_bomb'
     });
+    if (!firebaseWriteSuccess) {
+      console.error('Failed to write "miss you" signal to Firebase for partner:', partnerId);
+      return res.status(500).json({ error: 'Failed to send love (realtime update failed)' });
+    }
 
     // 2. Send Push Notification (High Priority)
     const senderName = req.user.name || 'Your partner';

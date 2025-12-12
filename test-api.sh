@@ -3,11 +3,33 @@
 # Bubbles API Quick Test Script
 # Tests backend endpoints to verify everything works
 
+# ⚠️ SECURITY WARNING ⚠️
+# This script uses default admin credentials for testing purposes.
+# These credentials are for LOCAL DEVELOPMENT ONLY and MUST BE CHANGED in production!
+# 
+# To use custom credentials, set the following environment variables:
+#   export BUBBLES_TEST_ADMIN_USER="your_username"
+#   export BUBBLES_TEST_ADMIN_PASSWORD="your_secure_password"
+#
+# NEVER use default credentials in production environments!
+
 echo "🧪 Bubbles API Test Suite"
 echo "=========================="
 echo ""
 
 BASE_URL="http://localhost:3000"
+
+# Admin credentials - use environment variables or fall back to defaults
+# ⚠️ DEFAULT CREDENTIALS ARE FOR TESTING ONLY - CHANGE IN PRODUCTION!
+ADMIN_USER="${BUBBLES_TEST_ADMIN_USER:-admin}"
+ADMIN_PASSWORD="${BUBBLES_TEST_ADMIN_PASSWORD:-admin123}"
+
+# Warn if using default credentials
+if [ "$ADMIN_PASSWORD" == "admin123" ]; then
+    echo -e "\033[1;33m⚠️  WARNING: Using default admin credentials for testing\033[0m"
+    echo -e "\033[1;33m   These MUST be changed in production environments!\033[0m"
+    echo ""
+fi
 
 # Colors
 GREEN='\033[0;32m'
@@ -29,7 +51,7 @@ test_endpoint() {
 
     response=$(curl -s -o /dev/null -w "%{http_code}" "$url")
 
-    if [ "$response" -eq "$expected_status" ]; then
+    if [ "$response" = "$expected_status" ]; then
         echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
         ((PASSED++))
     else
@@ -58,7 +80,7 @@ response=$(curl -s -X POST "$BASE_URL/api/auth/register" \
     }' \
     -w "%{http_code}" -o /tmp/register_response.json)
 
-if [ "$response" -eq "201" ]; then
+if [ "$response" = "201" ]; then
     TOKEN=$(jq -r '.token' /tmp/register_response.json)
     USER_ID=$(jq -r '.user.id' /tmp/register_response.json)
     echo -e "${GREEN}✓ PASS${NC} (HTTP $response, Token: ${TOKEN:0:20}...)"
@@ -81,7 +103,7 @@ if [ ! -z "$TOKEN" ]; then
         }" \
         -w "%{http_code}" -o /dev/null)
 
-    if [ "$response" -eq "200" ]; then
+    if [ "$response" = "200" ]; then
         echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
         ((PASSED++))
     else
@@ -97,7 +119,7 @@ if [ ! -z "$TOKEN" ]; then
         "$BASE_URL/api/auth/me" \
         -w "%{http_code}" -o /dev/null)
 
-    if [ "$response" -eq "200" ]; then
+    if [ "$response" = "200" ]; then
         echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
         ((PASSED++))
     else
@@ -108,11 +130,11 @@ fi
 
 # Test 7: Admin Panel Auth
 echo -n "Testing: Admin Panel (with auth)... "
-response=$(curl -s -u "admin:admin123" \
+response=$(curl -s -u "$ADMIN_USER:$ADMIN_PASSWORD" \
     "$BASE_URL/api/admin/health" \
     -w "%{http_code}" -o /dev/null)
 
-if [ "$response" -eq "200" ]; then
+if [ "$response" = "200" ]; then
     echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
     ((PASSED++))
 else
@@ -121,11 +143,11 @@ fi
 
 # Test 8: SQL Injection Prevention
 echo -n "Testing: SQL Injection Prevention... "
-response=$(curl -s -u "admin:admin123" \
+response=$(curl -s -u "$ADMIN_USER:$ADMIN_PASSWORD" \
     "$BASE_URL/api/admin/table/users;DROP%20TABLE%20users" \
     -w "%{http_code}" -o /dev/null)
 
-if [ "$response" -eq "400" ]; then
+if [ "$response" = "400" ]; then
     echo -e "${GREEN}✓ PASS${NC} (Injection blocked)"
     ((PASSED++))
 else

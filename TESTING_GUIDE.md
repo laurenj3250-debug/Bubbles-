@@ -58,9 +58,14 @@ npm run web
 
 **Open:** `http://localhost:3000/admin.html`
 
+**⚠️ SECURITY WARNING:**
+The default credentials below are for **LOCAL TESTING ONLY** and MUST be changed in production!
+Set `ADMIN_PASSWORD` environment variable to use a secure password.
+
 **Login:**
 - Username: `admin`
-- Password: `admin123` (or your `ADMIN_PASSWORD` from .env)
+- Password: `admin123` (default - **CHANGE IN PRODUCTION!**)
+- Or use your custom `ADMIN_PASSWORD` from .env
 
 **What to Test:**
 1. Dashboard loads with stats
@@ -346,11 +351,16 @@ curl http://localhost:3000/api/signals/partner/all
 **Try malicious table name:**
 
 ```bash
+# Note: Uses default credentials for local testing
+# Set BUBBLES_TEST_ADMIN_USER and BUBBLES_TEST_ADMIN_PASSWORD for custom credentials
 curl -u admin:admin123 \
   "http://localhost:3000/api/admin/table/users;DROP%20TABLE%20users"
 ```
 
 **Expected:** `{"error":"Invalid table name format"}`
+
+**⚠️ Security Note:** The credentials shown here are default test credentials.
+Always use strong, unique credentials in production environments!
 
 ### Test 11: CORS Protection
 
