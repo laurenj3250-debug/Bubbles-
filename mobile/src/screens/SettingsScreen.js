@@ -144,21 +144,30 @@ export default function SettingsScreen({ navigation }) {
     }
   };
 
-  const handleLogout = () => {
-    Alert.alert(
-      'Logout',
-      'Are you sure you want to logout?',
-      [
-        { text: 'Cancel', style: 'cancel' },
-        {
-          text: 'Logout',
-          style: 'destructive',
-          onPress: async () => {
-            await signOut();
+  const handleLogout = async () => {
+    // Web doesn't support Alert.alert properly, use window.confirm
+    const Platform = require('react-native').Platform;
+
+    if (Platform.OS === 'web') {
+      if (window.confirm('Are you sure you want to logout?')) {
+        await signOut();
+      }
+    } else {
+      Alert.alert(
+        'Logout',
+        'Are you sure you want to logout?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Logout',
+            style: 'destructive',
+            onPress: async () => {
+              await signOut();
+            },
           },
-        },
-      ]
-    );
+        ]
+      );
+    }
   };
 
   return (
