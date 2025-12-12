@@ -19,6 +19,8 @@ const createTables = async () => {
           name VARCHAR(255) NOT NULL,
           phone VARCHAR(50),
           avatar_url TEXT,
+          is_admin INTEGER DEFAULT 0,
+          is_immutable INTEGER DEFAULT 0,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
@@ -218,6 +220,8 @@ const createTables = async () => {
           name VARCHAR(255) NOT NULL,
           phone VARCHAR(50),
           avatar_url TEXT,
+          is_admin BOOLEAN DEFAULT false,
+          is_immutable BOOLEAN DEFAULT false,
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )

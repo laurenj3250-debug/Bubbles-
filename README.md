@@ -1,20 +1,18 @@
 <div align="center">
-<img src="mobile/assets/icon.png" alt="Bubbles Logo" width="120"/>
+<img src="mobile/assets/icon.png" alt="Sugarbum Logo" width="120"/>
 
-# 🫧 Bubbles
-
-**Previously known as Sugarbum**
+# 💜 Sugarbum
 
 *Stay connected with your person through automatic life signals*
 </div>
 
-Bubbles is a cross-platform mobile app that automatically shares bite-size life signals between couples — location + weather, activity/fitness, Spotify now-playing, calendar status, and device context — with push notifications and a Railway-powered backend.
+Sugarbum is a cross-platform mobile app that automatically shares bite-size life signals between couples — location + weather, activity/fitness, Spotify now-playing, calendar status, and device context — with push notifications and a Railway-powered backend.
 
 ## 🎯 Project Overview
 
 ### What It Does
 
-Bubbles helps couples stay connected throughout their day by automatically sharing contextual information:
+Sugarbum helps couples stay connected throughout their day by automatically sharing contextual information:
 
 - **📍 Location + Weather**: See where your partner is and what the weather is like there
 - **🏃 Activity/Fitness**: Share steps, workouts, heart rate, and sleep data
@@ -29,7 +27,7 @@ Background services, sensors, health data, geofencing, and push notifications re
 ## 🏗️ Architecture
 
 ```
-Bubbles/
+Sugarbum/
 ├── backend/           # Node/Express API on Railway
 │   ├── src/
 │   │   ├── routes/   # API endpoints
@@ -95,20 +93,20 @@ npm run migrate
 npm run dev
 ```
 
-**Backend runs on:** `http://localhost:3000`  
-**Admin panel:** `http://localhost:3000/admin.html` (default password: `admin123`)  
-**Admin user:** `amps@sugarbum.app` / `h3nb3nny` (immutable, created on startup)
+**Backend runs on:** `http://localhost:3000`
+**Admin panel:** `http://localhost:3000/admin.html` (password configured via `ADMIN_PANEL_PASSWORD` in .env)
 
-### Admin Columns Migration
+### Admin User Setup
 
-After first-time setup, run the admin columns migration:
+To create an admin user, set these environment variables in your `.env` file:
 
 ```bash
-cd backend
-node scripts/add-admin-columns.js
+ADMIN_EMAIL=your-email@example.com
+ADMIN_INITIAL_PASSWORD=your-secure-password
+ADMIN_PANEL_PASSWORD=your-admin-panel-password
 ```
 
-This adds `is_admin` and `is_immutable` columns to the users table.
+The admin user will be automatically created on server startup with `is_admin` and `is_immutable` flags.
 
 See [backend/README.md](backend/README.md) and [backend/DATABASE_SETUP.md](backend/DATABASE_SETUP.md) for detailed setup.
 
@@ -180,10 +178,10 @@ When you send a partner request to someone who doesn't have an account yet:
 - Deep link: `sugarbum://signup` → opens app or web signup
 
 ### Admin System
-- **Admin User:** Auto-created on startup (`amps@sugarbum.app` / `h3nb3nny`)
-- **Database Columns:** `is_admin`, `is_immutable`
-- **Admin Panel Button:** Appears in Settings for admin users
-- **Immutable User:** Admin cannot be deleted from database
+- **Admin User:** Configured via environment variables (see Backend Setup)
+- **Database Columns:** `is_admin`, `is_immutable` (created by migration)
+- **Admin Panel:** Secure access with environment-configured password
+- **Immutable User:** Admin users cannot be deleted from database
 
 ### Dummy Partner
 - **Auto-Partnership:** New users automatically paired with themselves
@@ -213,11 +211,11 @@ Access the admin panel at **http://localhost:3000/admin.html**
 
 **Features:**
 - View all database tables and data
-- Execute SQL queries
+- Execute SQL queries (read-only SELECT queries)
 - Monitor user registrations
 - Database statistics dashboard
 
-**Default Password:** `admin123` (configurable via `ADMIN_PASSWORD` in `.env`)
+**Security:** Set `ADMIN_PANEL_PASSWORD` in `.env` to a strong password
 
 ## 🗄️ Database Schema
 
@@ -402,7 +400,11 @@ NODE_ENV=development
 # DATABASE_URL=postgresql://...
 
 # Admin Panel
-ADMIN_PASSWORD=admin123
+ADMIN_PANEL_PASSWORD=your-strong-admin-panel-password
+
+# Admin User (created on startup)
+ADMIN_EMAIL=admin@yourdomain.com
+ADMIN_INITIAL_PASSWORD=your-strong-admin-password
 
 JWT_SECRET=your-secret
 SPOTIFY_CLIENT_ID=...

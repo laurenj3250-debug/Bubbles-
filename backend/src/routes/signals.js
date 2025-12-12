@@ -111,6 +111,26 @@ router.post('/location', async (req, res) => {
       return res.status(400).json({ error: 'Latitude and longitude are required' });
     }
 
+    // Validate coordinate ranges
+    const lat = parseFloat(latitude);
+    const lon = parseFloat(longitude);
+
+    if (isNaN(lat) || lat < -90 || lat > 90) {
+      return res.status(400).json({ error: 'Invalid latitude (must be between -90 and 90)' });
+    }
+
+    if (isNaN(lon) || lon < -180 || lon > 180) {
+      return res.status(400).json({ error: 'Invalid longitude (must be between -180 and 180)' });
+    }
+
+    // Validate accuracy if provided
+    if (accuracy !== undefined && accuracy !== null) {
+      const acc = parseFloat(accuracy);
+      if (isNaN(acc) || acc < 0) {
+        return res.status(400).json({ error: 'Invalid accuracy (must be a positive number)' });
+      }
+    }
+
     // Check privacy
     const canShare = await checkPrivacy(req.user.id, 'share_location');
     if (!canShare) {
@@ -211,6 +231,42 @@ router.post('/activity', async (req, res) => {
       activityType, steps, distance, calories,
       heartRate, workoutType, workoutDuration
     } = req.body;
+
+    // Validate numeric inputs
+    if (steps !== undefined && steps !== null) {
+      const s = parseInt(steps);
+      if (isNaN(s) || s < 0 || s > 1000000) {
+        return res.status(400).json({ error: 'Invalid steps value' });
+      }
+    }
+
+    if (distance !== undefined && distance !== null) {
+      const d = parseFloat(distance);
+      if (isNaN(d) || d < 0 || d > 100000) {
+        return res.status(400).json({ error: 'Invalid distance value' });
+      }
+    }
+
+    if (calories !== undefined && calories !== null) {
+      const c = parseInt(calories);
+      if (isNaN(c) || c < 0 || c > 50000) {
+        return res.status(400).json({ error: 'Invalid calories value' });
+      }
+    }
+
+    if (heartRate !== undefined && heartRate !== null) {
+      const hr = parseInt(heartRate);
+      if (isNaN(hr) || hr < 20 || hr > 300) {
+        return res.status(400).json({ error: 'Invalid heart rate (must be between 20 and 300)' });
+      }
+    }
+
+    if (workoutDuration !== undefined && workoutDuration !== null) {
+      const wd = parseInt(workoutDuration);
+      if (isNaN(wd) || wd < 0 || wd > 86400) {
+        return res.status(400).json({ error: 'Invalid workout duration' });
+      }
+    }
 
     const canShare = await checkPrivacy(req.user.id, 'share_activity');
     if (!canShare) {
@@ -407,6 +463,14 @@ router.post('/miss-you', async (req, res) => {
 router.post('/device', async (req, res) => {
   try {
     const { batteryLevel, isCharging, timezone, doNotDisturb } = req.body;
+
+    // Validate battery level
+    if (batteryLevel !== undefined && batteryLevel !== null) {
+      const bl = parseInt(batteryLevel);
+      if (isNaN(bl) || bl < 0 || bl > 100) {
+        return res.status(400).json({ error: 'Invalid battery level (must be between 0 and 100)' });
+      }
+    }
 
     const canShare = await checkPrivacy(req.user.id, 'share_device_context');
     if (!canShare) {

@@ -4,10 +4,18 @@ const { isSQLite, isPostgres } = require('../config/database');
 
 const router = express.Router();
 
-// Simple authentication check (basic protection)
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'admin123';
+// Admin panel authentication - REQUIRES strong password in environment
+const ADMIN_PANEL_PASSWORD = process.env.ADMIN_PANEL_PASSWORD;
+
+if (!ADMIN_PANEL_PASSWORD) {
+  console.error('⚠️  SECURITY WARNING: ADMIN_PANEL_PASSWORD not set! Admin panel will be inaccessible.');
+}
 
 const checkAdminAuth = (req, res, next) => {
+  if (!ADMIN_PANEL_PASSWORD) {
+    return res.status(503).json({ error: 'Admin panel not configured' });
+  }
+
   const authHeader = req.headers.authorization;
 
   console.log('Auth attempt - Header:', authHeader ? 'Present' : 'Missing');
@@ -21,7 +29,7 @@ const checkAdminAuth = (req, res, next) => {
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [username, password] = credentials.split(':');
 
-  if (password !== ADMIN_PASSWORD) {
+  if (password !== ADMIN_PANEL_PASSWORD) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
 
@@ -32,7 +40,7 @@ const checkAdminAuth = (req, res, next) => {
 router.get('/config', checkAdminAuth, (req, res) => {
   res.json({
     message: 'Admin panel configuration',
-    passwordSet: !!process.env.ADMIN_PASSWORD,
+    passwordSet: !!ADMIN_PANEL_PASSWORD,
     database: isSQLite ? 'SQLite' : 'PostgreSQL',
     nodeEnv: process.env.NODE_ENV || 'development'
   });
