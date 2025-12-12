@@ -79,8 +79,8 @@ rm -f "$temp_file"
 # Test 5: Login
 if [ ! -z "$TOKEN" ]; then
     echo -n "Testing: User Login... "
-    # Extract email from USER_ID test - we need to capture it during registration
-    # Create a secure temp file for login test
+    # Create a new user for login test
+    # Create a secure temp file with restrictive permissions
     temp_login_file=$(mktemp)
     chmod 600 "$temp_login_file"
     
@@ -95,7 +95,6 @@ if [ ! -z "$TOKEN" ]; then
     
     if [ "$response" == "201" ]; then
         email=$(jq -r '.user.email' "$temp_login_file")
-        rm -f "$temp_login_file"
         
         response=$(curl -s -X POST "$BASE_URL/api/auth/login" \
             -H "Content-Type: application/json" \
@@ -113,10 +112,12 @@ if [ ! -z "$TOKEN" ]; then
             ((FAILED++))
         fi
     else
-        rm -f "$temp_login_file"
         echo -e "${RED}✗ FAIL${NC} (Could not create test user for login)"
         ((FAILED++))
     fi
+    
+    # Securely remove temp file immediately after use
+    rm -f "$temp_login_file"
 fi
 
 # Test 6: Authenticated Request
