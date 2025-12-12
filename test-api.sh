@@ -29,7 +29,7 @@ test_endpoint() {
 
     response=$(curl -s -o /dev/null -w "%{http_code}" "$url")
 
-    if [ "$response" == "$expected_status" ]; then
+    if [ "$response" -eq "$expected_status" ]; then
         echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
         ((PASSED++))
     else
@@ -58,7 +58,7 @@ response=$(curl -s -X POST "$BASE_URL/api/auth/register" \
     }' \
     -w "%{http_code}" -o /tmp/register_response.json)
 
-if [ "$response" == "201" ]; then
+if [ "$response" -eq "201" ]; then
     TOKEN=$(jq -r '.token' /tmp/register_response.json)
     USER_ID=$(jq -r '.user.id' /tmp/register_response.json)
     echo -e "${GREEN}✓ PASS${NC} (HTTP $response, Token: ${TOKEN:0:20}...)"
@@ -81,7 +81,7 @@ if [ ! -z "$TOKEN" ]; then
         }" \
         -w "%{http_code}" -o /dev/null)
 
-    if [ "$response" == "200" ]; then
+    if [ "$response" -eq "200" ]; then
         echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
         ((PASSED++))
     else
@@ -97,7 +97,7 @@ if [ ! -z "$TOKEN" ]; then
         "$BASE_URL/api/auth/me" \
         -w "%{http_code}" -o /dev/null)
 
-    if [ "$response" == "200" ]; then
+    if [ "$response" -eq "200" ]; then
         echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
         ((PASSED++))
     else
@@ -112,7 +112,7 @@ response=$(curl -s -u "admin:admin123" \
     "$BASE_URL/api/admin/health" \
     -w "%{http_code}" -o /dev/null)
 
-if [ "$response" == "200" ]; then
+if [ "$response" -eq "200" ]; then
     echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
     ((PASSED++))
 else
@@ -125,7 +125,7 @@ response=$(curl -s -u "admin:admin123" \
     "$BASE_URL/api/admin/table/users;DROP%20TABLE%20users" \
     -w "%{http_code}" -o /dev/null)
 
-if [ "$response" == "400" ]; then
+if [ "$response" -eq "400" ]; then
     echo -e "${GREEN}✓ PASS${NC} (Injection blocked)"
     ((PASSED++))
 else
