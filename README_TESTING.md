@@ -70,9 +70,12 @@ curl http://localhost:3000/health
 ### 3. Admin Panel 🔐
 **URL:** `http://localhost:3000/admin.html`
 
+**⚠️ SECURITY WARNING:**
+Default credentials are for **LOCAL TESTING ONLY**. Change in production!
+
 **Credentials:**
 - Username: `admin`
-- Password: `admin123`
+- Password: `admin123` (default - **SET ADMIN_PASSWORD env var in production!**)
 
 **Test:**
 - ✅ View database tables
@@ -132,7 +135,10 @@ cd mobile && npm install
 **Fix:** This is expected for local dev. Real-time features use fallback config.
 
 ### "Admin password incorrect"
-**Fix:** Default is `admin123`. Set `ADMIN_PASSWORD` in `.env` if changed.
+**Fix:** Default is `admin123` (for testing only).
+- For production: Set `ADMIN_PASSWORD` environment variable to a secure password
+- For testing: Use `BUBBLES_TEST_ADMIN_PASSWORD` env var in test scripts
+- **⚠️ NEVER use default credentials in production!**
 
 ---
 
@@ -183,6 +189,7 @@ curl http://localhost:3000/api/partners/current
 # Expected: {"error":"No token provided"}
 
 # 2. Try SQL injection (should be blocked)
+# Note: Using default test credentials - change in production!
 curl -u admin:admin123 "http://localhost:3000/api/admin/table/users;DROP"
 # Expected: {"error":"Invalid table name format"}
 
