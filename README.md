@@ -96,7 +96,19 @@ npm run dev
 ```
 
 **Backend runs on:** `http://localhost:3000`  
-**Admin panel:** `http://localhost:3000/admin.html` (password: `admin123`)
+**Admin panel:** `http://localhost:3000/admin.html` (default password: `admin123`)  
+**Admin user:** `amps@sugarbum.app` / `h3nb3nny` (immutable, created on startup)
+
+### Admin Columns Migration
+
+After first-time setup, run the admin columns migration:
+
+```bash
+cd backend
+node scripts/add-admin-columns.js
+```
+
+This adds `is_admin` and `is_immutable` columns to the users table.
 
 See [backend/README.md](backend/README.md) and [backend/DATABASE_SETUP.md](backend/DATABASE_SETUP.md) for detailed setup.
 
@@ -155,7 +167,34 @@ See [backend/README.md](backend/README.md) for Railway deployment instructions.
    - Account info
    - Connected services
    - Notification preferences
+   - **Admin Panel Access** (for admin users)
    - Logout
+
+## ✨ Recent Features
+
+### Email Invitations
+When you send a partner request to someone who doesn't have an account yet:
+- Sends a branded email invitation with deep links
+- Mock email service (console logging) for development
+- Privacy-preserving (doesn't reveal if user exists)
+- Deep link: `sugarbum://signup` → opens app or web signup
+
+### Admin System
+- **Admin User:** Auto-created on startup (`amps@sugarbum.app` / `h3nb3nny`)
+- **Database Columns:** `is_admin`, `is_immutable`
+- **Admin Panel Button:** Appears in Settings for admin users
+- **Immutable User:** Admin cannot be deleted from database
+
+### Dummy Partner
+- **Auto-Partnership:** New users automatically paired with themselves
+- **Testing:** Test partner features without needing a second account
+- **Control:** Toggle via `ENABLE_DUMMY_PARTNER` environment variable
+
+### Web Compatibility
+- **Location Services:** Browser Geolocation API for web, expo-location for native
+- **Graceful Degradation:** Features degrade appropriately on web
+- **Alerts:** Platform-specific (window.alert on web, Alert.alert on native)
+- **Spotify:** Backend OAuth works on all platforms
 
 ## 🔧 Database Configuration
 
@@ -369,6 +408,9 @@ JWT_SECRET=your-secret
 SPOTIFY_CLIENT_ID=...
 SPOTIFY_CLIENT_SECRET=...
 WEATHER_API_KEY=...
+
+# Features
+ENABLE_DUMMY_PARTNER=true  # Auto-create self-partnership for testing
 ```
 
 ### Mobile
