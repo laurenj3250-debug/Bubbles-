@@ -76,6 +76,7 @@ export const AnimatedBlob = ({
         },
         animatedStyle,
         style,
+        { pointerEvents: 'none' },
       ]}
     >
       <Svg width={size} height={size} viewBox="0 0 200 200">
