@@ -30,18 +30,37 @@ export default function RegisterScreen({ navigation }) {
   const { signUp } = React.useContext(AuthContext);
 
   const handleRegister = async () => {
+    // Helper for showing alerts (web-compatible)
+    const showAlert = (title, message) => {
+      if (Platform.OS === 'web') {
+        window.alert(`${title}\n\n${message}`);
+      } else {
+        Alert.alert(title, message);
+      }
+    };
+
+    // Validate required fields
     if (!name || !email || !password) {
-      Alert.alert('Error', 'Please fill in all required fields');
+      showAlert('Error', 'Please fill in all required fields (Name, Email, Password)');
       return;
     }
 
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) {
+      showAlert('Error', 'Please enter a valid email address');
+      return;
+    }
+
+    // Validate password length
     if (password.length < 8) {
-      Alert.alert('Error', 'Password must be at least 8 characters');
+      showAlert('Error', 'Password must be at least 8 characters');
       return;
     }
 
+    // Validate password confirmation
     if (password !== confirmPassword) {
-      Alert.alert('Error', 'Passwords do not match');
+      showAlert('Error', 'Passwords do not match');
       return;
     }
 
@@ -58,7 +77,7 @@ export default function RegisterScreen({ navigation }) {
       await signUp(response.data.token, response.data.user);
     } catch (error) {
       console.error('Register error:', error);
-      Alert.alert(
+      showAlert(
         'Registration Failed',
         error.response?.data?.error || 'Unable to create account. Please try again.'
       );
