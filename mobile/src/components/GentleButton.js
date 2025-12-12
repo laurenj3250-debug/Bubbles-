@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, Vibration } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
 import theme from '../theme';
 
 /**
@@ -15,7 +15,15 @@ export const GentleButton = ({
   textStyle,
 }) => {
   const handlePress = () => {
-    Vibration.vibrate(10); // Gentle haptic
+    // Gentle haptic feedback (mobile only)
+    if (Platform.OS !== 'web') {
+      try {
+        const { Vibration } = require('react-native');
+        Vibration.vibrate(10);
+      } catch (e) {
+        // Vibration not available, silently ignore
+      }
+    }
     onPress?.();
   };
 

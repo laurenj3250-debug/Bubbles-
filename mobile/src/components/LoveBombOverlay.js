@@ -1,6 +1,5 @@
 import React, { useEffect, useState, useRef } from 'react';
-import { View, Text, StyleSheet, Modal, Animated, Easing } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { View, Text, StyleSheet, Modal, Animated, Easing, Platform } from 'react-native';
 import theme from '../theme';
 
 export const LoveBombOverlay = ({ isVisible, onDismiss }) => {
@@ -19,16 +18,23 @@ export const LoveBombOverlay = ({ isVisible, onDismiss }) => {
     const startShow = () => {
         setVisible(true);
 
-        // Haptics: Heartbeat pattern
+        // Haptics: Heartbeat pattern (mobile only)
         // Heavy, pause, Light (Thump-thump)
         const triggerHaptics = async () => {
-            await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-            setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 200);
+            if (Platform.OS !== 'web') {
+                try {
+                    const Haptics = require('expo-haptics');
+                    await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                    setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 200);
 
-            setTimeout(async () => {
-                await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
-                setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 200);
-            }, 800);
+                    setTimeout(async () => {
+                        await Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+                        setTimeout(() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light), 200);
+                    }, 800);
+                } catch (e) {
+                    // Haptics not available, silently ignore
+                }
+            }
         };
         triggerHaptics();
 
@@ -37,12 +43,12 @@ export const LoveBombOverlay = ({ isVisible, onDismiss }) => {
             Animated.spring(scaleAnim, {
                 toValue: 1,
                 friction: 5,
-                useNativeDriver: true,
+                useNativeDriver: Platform.OS !== 'web',
             }),
             Animated.timing(opacityAnim, {
                 toValue: 1,
                 duration: 300,
-                useNativeDriver: true,
+                useNativeDriver: Platform.OS !== 'web',
             })
         ]).start();
 
@@ -53,13 +59,13 @@ export const LoveBombOverlay = ({ isVisible, onDismiss }) => {
                     toValue: 1.2,
                     duration: 500,
                     easing: Easing.ease,
-                    useNativeDriver: true
+                    useNativeDriver: Platform.OS !== 'web'
                 }),
                 Animated.timing(scaleAnim, {
                     toValue: 1,
                     duration: 500,
                     easing: Easing.ease,
-                    useNativeDriver: true
+                    useNativeDriver: Platform.OS !== 'web'
                 })
             ])
         );
@@ -71,7 +77,7 @@ export const LoveBombOverlay = ({ isVisible, onDismiss }) => {
             Animated.timing(opacityAnim, {
                 toValue: 0,
                 duration: 500,
-                useNativeDriver: true,
+                useNativeDriver: Platform.OS !== 'web',
             }).start(() => {
                 setVisible(false);
                 scaleAnim.setValue(0); // Reset
