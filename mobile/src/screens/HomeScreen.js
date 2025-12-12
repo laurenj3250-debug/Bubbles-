@@ -54,7 +54,7 @@ export default function HomeScreen({ navigation }) {
     if (!partner) return;
 
     // Subscribe to partner's real-time status
-    const statusRef = ref(database, `users / ${partner.id}/status`);
+    const statusRef = ref(database, `users/${partner.id}/status`);
 
     const unsubscribe = onValue(statusRef, (snapshot) => {
       const realtimeStatus = snapshot.val();

@@ -76,6 +76,27 @@ async function runTest() {
         }, { headers: { Authorization: `Bearer ${token2}` } });
         console.log('   ✅ User 2 sent location');
 
+        // 3.1 Activity Signals
+        console.log('\n3.1 🏃 Sending Activity Signals...');
+        await axios.post(`${API_URL}/signals/activity`, {
+            steps: 5000,
+            distance: 3.5,
+            calories: 300,
+            activityType: 'walking'
+        }, { headers: { Authorization: `Bearer ${token1}` } });
+        console.log('   ✅ User 1 sent activity data');
+
+        // 3.2 Music Signals
+        console.log('\n3.2 🎵 Sending Music Signals...');
+        await axios.post(`${API_URL}/signals/music`, {
+            trackName: 'Bohemian Rhapsody',
+            artistName: 'Queen',
+            isPlaying: true,
+            progressMs: 30000,
+            durationMs: 354000
+        }, { headers: { Authorization: `Bearer ${token1}` } });
+        console.log('   ✅ User 1 sent music status');
+
         // 4. Miss You / Love Bomb
         console.log('\n4. 💖 Sending "Miss You" Signal...');
         const missYouRes = await axios.post(`${API_URL}/signals/miss-you`, {}, {

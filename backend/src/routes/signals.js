@@ -221,8 +221,9 @@ router.post('/activity', async (req, res) => {
       signal: result.rows[0]
     });
   } catch (error) {
-    console.error('Activity signal error:', error);
-    res.status(500).json({ error: 'Failed to share activity' });
+    console.error('❌ Activity signal error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: 'Failed to share activity', details: error.message });
   }
 });
 
@@ -304,8 +305,9 @@ router.post('/music', async (req, res) => {
       signal: result.rows[0]
     });
   } catch (error) {
-    console.error('Music signal error:', error);
-    res.status(500).json({ error: 'Failed to share music' });
+    console.error('❌ Music signal error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: 'Failed to share music', details: error.message });
   }
 });
 

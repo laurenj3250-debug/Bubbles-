@@ -28,7 +28,7 @@ const getApiUrl = () => {
   const Platform = require('react-native').Platform;
   const fallbackHost = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
-  // return `http://${fallbackHost}:3000/api`;
+  // return `http://${fallbackHost}:8080/api`;
 
   // Production Railway URL
   return 'https://sugarbum-backend-production.up.railway.app/api';

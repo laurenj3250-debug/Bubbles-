@@ -65,7 +65,16 @@ if (usePostgres) {
             });
 
             if (foundPostgresParams) {
-              sqliteParams = newParams;
+              sqliteParams = newParams.map(p => {
+                if (typeof p === 'boolean') return p ? 1 : 0;
+                return p;
+              });
+            } else {
+              // Even if no Postgres params re-mapping needed, we must check for booleans
+              sqliteParams = params.map(p => {
+                if (typeof p === 'boolean') return p ? 1 : 0;
+                return p;
+              });
             }
           }
 
