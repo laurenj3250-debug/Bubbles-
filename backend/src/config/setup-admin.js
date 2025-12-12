@@ -2,51 +2,54 @@ const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 /**
- * Simple admin setup - assumes columns already exist
- * Run add-admin-columns.js script first if needed
+ * Admin setup - creates admin user from environment variables
+ * Set ADMIN_EMAIL and ADMIN_PASSWORD in .env to create admin user on startup
  */
 async function setupAdmin() {
     try {
+        // Only create admin if credentials are provided in environment
+        const adminEmail = process.env.ADMIN_EMAIL;
+        const adminPassword = process.env.ADMIN_PASSWORD_HASH || process.env.ADMIN_INITIAL_PASSWORD;
+
+        if (!adminEmail || !adminPassword) {
+            console.log('ℹ️  No admin credentials provided in environment variables. Skipping admin setup.');
+            console.log('   Set ADMIN_EMAIL and ADMIN_INITIAL_PASSWORD in .env to create admin user.');
+            return;
+        }
+
         console.log('🔧 Running admin setup...');
 
         // Check if admin user exists
         const adminCheck = await pool.query(
             'SELECT * FROM users WHERE email = ?',
-            ['amps@sugarbum.app']
+            [adminEmail]
         );
 
         if (adminCheck.rows.length === 0) {
-            // Create admin user
-            const hashedPassword = await bcrypt.hash('h3nb3nny', 10);
+            // Hash password if provided as plain text
+            const hashedPassword = process.env.ADMIN_PASSWORD_HASH || await bcrypt.hash(adminPassword, 10);
 
             try {
                 await pool.query(`
-          INSERT INTO users (name, email, password, is_admin, is_immutable)
+          INSERT INTO users (name, email, password_hash, is_admin, is_immutable)
           VALUES (?, ?, ?, ?, ?)
-        `, ['Amps', 'amps@sugarbum.app', hashedPassword, 1, 1]);
+        `, ['Admin', adminEmail, hashedPassword, 1, 1]);
 
-                console.log('✅ Created admin user: amps@sugarbum.app');
-                console.log('   Password: h3nb3nny');
+                console.log(`✅ Created admin user: ${adminEmail}`);
             } catch (insertError) {
-                // Columns might not exist yet, insert without admin columns
-                console.log('ℹ️  Admin columns don\'t exist yet, creating user without admin flags');
-                await pool.query(`
-          INSERT INTO users (name, email, password)
-          VALUES (?, ?, ?)
-        `, ['Amps', 'amps@sugarbum.app', hashedPassword]);
-                console.log('✅ Created user: amps@sugarbum.app (run migration to add admin columns)');
+                console.error('⚠️  Failed to create admin user:', insertError.message);
             }
         } else {
             // Try to update existing user to be admin
             try {
                 await pool.query(`
-          UPDATE users 
+          UPDATE users
           SET is_admin = ?, is_immutable = ?
           WHERE email = ?
-        `, [1, 1, 'amps@sugarbum.app']);
-                console.log('✅ Updated user to admin: amps@sugarbum.app');
+        `, [1, 1, adminEmail]);
+                console.log(`✅ Updated user to admin: ${adminEmail}`);
             } catch (updateError) {
-                console.log('ℹ️  Admin user exists but columns not added yet');
+                console.log('ℹ️  Admin user exists but admin columns may not be added yet');
             }
         }
 
