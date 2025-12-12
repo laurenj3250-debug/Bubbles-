@@ -56,6 +56,24 @@ router.post('/register', [
       [user.id]
     );
 
+    // Create dummy partner (self-partnership for testing)
+    // Controlled by env variable or always enabled in development
+    const enableDummyPartner = process.env.ENABLE_DUMMY_PARTNER !== 'false';
+
+    if (enableDummyPartner) {
+      try {
+        await client.query(
+          `INSERT INTO partnerships (user1_id, user2_id, status, accepted_at)
+           VALUES ($1, $2, 'accepted', CURRENT_TIMESTAMP)`,
+          [user.id, user.id]
+        );
+        console.log(`✅ Created dummy partner for user ${user.id} (self-partnership for testing)`);
+      } catch (partnerError) {
+        // Don't fail registration if dummy partner creation fails
+        console.error('⚠️  Failed to create dummy partner:', partnerError.message);
+      }
+    }
+
     await client.query('COMMIT');
 
     // Generate JWT
