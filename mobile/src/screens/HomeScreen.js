@@ -11,6 +11,7 @@ import {
   PanResponder,
   TouchableOpacity,
   Image,
+  Platform,
 } from 'react-native';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -283,22 +284,37 @@ export default function HomeScreen({ navigation }) {
       // Send the location signal (handled by sendLocationSignal for platform specifics)
       await sendLocationSignal();
 
-      // Get readable address (only if location data is available)
+      // Get readable address (only if location data is available and on native)
       let placeName = '';
-      `Your partner can now see you${placeName ? ` at ${placeName}` : ''}!`,
-        [{ text: 'OK' }]
-    );
+      if (Platform.OS !== 'web' && location?.coords) {
+        try {
+          const [address] = await Location.reverseGeocodeAsync({
+            latitude: location.coords.latitude,
+            longitude: location.coords.longitude,
+          });
+          if (address) {
+            placeName = address.city || address.region || address.name || '';
+          }
+        } catch (geoError) {
+          console.log('Geocoding failed, skipping place name');
+        }
+      }
 
-} catch (error) {
-  console.error('Share location error:', error);
-  const errorMessage = error.response?.data?.error || 'Could not share location. Please check your connection and try again.';
-  Alert.alert('Unable to Share Location', errorMessage, [
-    { text: 'OK', style: 'cancel' }
-  ]);
-} finally {
-  setIsSharing(false);
-}
-};
+      Alert.alert(
+        'Location Shared!',
+        `Your partner can now see you${placeName ? ` at ${placeName}` : ''}!`,
+        [{ text: 'OK' }]
+      );
+    } catch (error) {
+      console.error('Share location error:', error);
+      const errorMessage = error.response?.data?.error || 'Could not share location. Please check your connection and try again.';
+      Alert.alert('Unable to Share Location', errorMessage, [
+        { text: 'OK', style: 'cancel' }
+      ]);
+    } finally {
+      setIsSharing(false);
+    }
+  };
 
 if (isLoading) {
   return (
