@@ -3,9 +3,24 @@
 # Bubbles Status Checker
 # Quick health check of all components
 
+# ⚠️ SECURITY WARNING ⚠️
+# This script uses default admin credentials for testing purposes.
+# These credentials are for LOCAL DEVELOPMENT ONLY and MUST BE CHANGED in production!
+# 
+# To use custom credentials, set the following environment variables:
+#   export BUBBLES_TEST_ADMIN_USER="your_username"
+#   export BUBBLES_TEST_ADMIN_PASSWORD="your_secure_password"
+#
+# NEVER use default credentials in production environments!
+
 echo "🔍 Bubbles System Status"
 echo "========================"
 echo ""
+
+# Admin credentials - use environment variables or fall back to defaults
+# ⚠️ DEFAULT CREDENTIALS ARE FOR TESTING ONLY - CHANGE IN PRODUCTION!
+ADMIN_USER="${BUBBLES_TEST_ADMIN_USER:-admin}"
+ADMIN_PASSWORD="${BUBBLES_TEST_ADMIN_PASSWORD:-admin123}"
 
 # Colors
 GREEN='\033[0;32m'
@@ -106,7 +121,7 @@ fi
 
 echo -n "ADMIN_PASSWORD... "
 if [ -z "$ADMIN_PASSWORD" ]; then
-    echo -e "${YELLOW}not set${NC} (using default: admin123)"
+    echo -e "${YELLOW}not set${NC} (using default: admin123 - ⚠️ CHANGE IN PRODUCTION!)"
 else
     echo -e "${GREEN}configured${NC}"
 fi
@@ -135,7 +150,9 @@ echo ""
 
 echo "Admin Panel:"
 echo "  ${BLUE}http://localhost:3000/admin.html${NC}"
-echo "  Username: admin, Password: admin123"
+echo "  Username: $ADMIN_USER"
+echo "  Password: $ADMIN_PASSWORD"
+echo "  ${YELLOW}⚠️  SECURITY: Change these credentials in production!${NC}"
 echo ""
 
 # Database Stats (if backend is running)
@@ -146,7 +163,7 @@ if curl -s http://localhost:3000/health > /dev/null 2>&1; then
     echo ""
 
     # Try to get stats if admin is accessible
-    stats=$(curl -s -u "admin:admin123" http://localhost:3000/api/admin/stats 2>/dev/null)
+    stats=$(curl -s -u "$ADMIN_USER:$ADMIN_PASSWORD" http://localhost:3000/api/admin/stats 2>/dev/null)
     if [ ! -z "$stats" ]; then
         echo "Users:        $(echo $stats | jq -r '.stats.users' 2>/dev/null || echo '?')"
         echo "Partnerships: $(echo $stats | jq -r '.stats.partnerships' 2>/dev/null || echo '?')"
