@@ -120,7 +120,7 @@ else
 fi
 
 echo -n "ADMIN_PASSWORD... "
-if [ -z "$ADMIN_PASSWORD" ]; then
+if [ -z "$BUBBLES_TEST_ADMIN_PASSWORD" ]; then
     echo -e "${YELLOW}not set${NC} (using default: admin123 - ⚠️ CHANGE IN PRODUCTION!)"
 else
     echo -e "${GREEN}configured${NC}"

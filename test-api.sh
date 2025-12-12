@@ -25,7 +25,7 @@ ADMIN_USER="${BUBBLES_TEST_ADMIN_USER:-admin}"
 ADMIN_PASSWORD="${BUBBLES_TEST_ADMIN_PASSWORD:-admin123}"
 
 # Warn if using default credentials
-if [ "$ADMIN_PASSWORD" == "admin123" ]; then
+if [ "$ADMIN_PASSWORD" = "admin123" ]; then
     echo -e "\033[1;33m⚠️  WARNING: Using default admin credentials for testing\033[0m"
     echo -e "\033[1;33m   These MUST be changed in production environments!\033[0m"
     echo ""
