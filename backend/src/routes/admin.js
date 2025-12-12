@@ -233,7 +233,125 @@ router.get('/health', checkAdminAuth, async (req, res) => {
     res.status(500).json({
       status: 'error',
       error: error.message
+    }
+});
+
+// Clear all data from a specific table
+router.delete('/table/:tableName/clear', checkAdminAuth, async (req, res) => {
+  try {
+    const { tableName } = req.params;
+
+    // Validate table name format
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+      return res.status(400).json({ error: 'Invalid table name format' });
+    }
+
+    // Validate table exists
+    let validTables;
+    if (isSQLite) {
+      validTables = await pool.query(`
+        SELECT name as table_name
+        FROM sqlite_master
+        WHERE type='table' AND name = ?
+      `, [tableName]);
+    } else {
+      validTables = await pool.query(`
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = $1
+      `, [tableName]);
+    }
+
+    if (validTables.rows.length === 0) {
+      return res.status(404).json({ error: 'Table not found' });
+    }
+
+    // Clear the table
+    await pool.query(`DELETE FROM ${tableName}`);
+
+    res.json({
+      success: true,
+      message: `All data cleared from ${tableName}`
     });
+  } catch (error) {
+    console.error('Error clearing table:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Clear all data from all tables (nuclear option)
+router.delete('/database/clear-all', checkAdminAuth, async (req, res) => {
+  try {
+    const tables = ['location_signals', 'activity_signals', 'music_signals',
+      'device_signals', 'calendar_signals', 'push_tokens',
+      'spotify_tokens', 'geofences', 'partnerships',
+      'privacy_settings', 'users'];
+
+    const results = [];
+    for (const table of tables) {
+      try {
+        await pool.query(`DELETE FROM ${table}`);
+        results.push({ table, status: 'cleared' });
+      } catch (err) {
+        results.push({ table, status: 'error', error: err.message });
+      }
+    }
+
+    res.json({
+      success: true,
+      message: 'Database cleared',
+      results
+    });
+  } catch (error) {
+    console.error('Error clearing database:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete specific row by ID
+router.delete('/table/:tableName/row/:id', checkAdminAuth, async (req, res) => {
+  try {
+    const { tableName, id } = req.params;
+
+    // Validate table name format
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+      return res.status(400).json({ error: 'Invalid table name format' });
+    }
+
+    // Validate table exists
+    let validTables;
+    if (isSQLite) {
+      validTables = await pool.query(`
+        SELECT name as table_name
+        FROM sqlite_master
+        WHERE type='table' AND name = ?
+      `, [tableName]);
+    } else {
+      validTables = await pool.query(`
+        SELECT table_name
+        FROM information_schema.tables
+        WHERE table_schema = 'public' AND table_name = $1
+      `, [tableName]);
+    }
+
+    if (validTables.rows.length === 0) {
+      return res.status(404).json({ error: 'Table not found' });
+    }
+
+    // Delete the row
+    if (isSQLite) {
+      await pool.query(`DELETE FROM ${tableName} WHERE id = ?`, [id]);
+    } else {
+      await pool.query(`DELETE FROM ${tableName} WHERE id = $1`, [id]);
+    }
+
+    res.json({
+      success: true,
+      message: `Row ${id} deleted from ${tableName}`
+    });
+  } catch (error) {
+    console.error('Error deleting row:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 

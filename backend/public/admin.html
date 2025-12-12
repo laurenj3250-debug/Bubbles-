@@ -303,6 +303,7 @@
                 <div class="tabs">
                     <button class="tab active" onclick="switchTab('tables')">📊 Tables</button>
                     <button class="tab" onclick="switchTab('query')">💻 Custom Query</button>
+                    <button class="tab" onclick="switchTab('management')">🗑️ Database Management</button>
                     <button class="tab" onclick="switchTab('health')">❤️ Health</button>
                 </div>
 
@@ -316,6 +317,22 @@
                         placeholder="Enter SQL query (SELECT only)...">SELECT * FROM users LIMIT 10;</textarea>
                     <button class="btn" onclick="executeQuery()">Execute Query</button>
                     <div id="queryResults"></div>
+                </div>
+
+                <div id="managementContent" class="tab-content">
+                    <h3>⚠️ Danger Zone</h3>
+                    <p style="color: #666; margin-bottom: 20px;">These actions cannot be undone. Use with caution.</p>
+
+                    <div class="table-selector" id="clearTableSelector"></div>
+
+                    <div
+                        style="margin-top: 30px; padding: 20px; background: #ffebee; border-radius: 10px; border: 2px solid #ef5350;">
+                        <h4 style="color: #c62828; margin-bottom: 10px;">Nuclear Option</h4>
+                        <p style="color: #666; margin-bottom: 15px;">Clear ALL data from ALL tables:</p>
+                        <button class="btn" style="background: #ef5350;" onclick="clearAllDatabase()">🧨 Clear Entire
+                            Database</button>
+                    </div>
+                    <div id="managementResults"></div>
                 </div>
 
                 <div id="healthContent" class="tab-content">
@@ -373,12 +390,95 @@
 
             if (tabName === 'health') {
                 loadHealth();
+            } else if (tabName === 'management') {
+                loadClearButtons();
             }
         }
 
         async function loadDashboard() {
             await loadStats();
             await loadTables();
+        }
+
+        async function loadClearButtons() {
+            try {
+                const response = await fetch(API_URL + '/tables', {
+                    headers: { 'Authorization': authHeader }
+                });
+                const data = await response.json();
+
+                const buttonsHtml = data.tables.map(table => `
+                    <button class="table-btn" style="background: #ffebee; border-color: #ef5350; color: #c62828;" 
+                            onclick="clearTable('${table}')">
+                        🗑️ Clear ${table}
+                    </button>
+                `).join('');
+
+                document.getElementById('clearTableSelector').innerHTML = buttonsHtml;
+            } catch (error) {
+                console.error('Error loading tables:', error);
+            }
+        }
+
+        async function clearTable(tableName) {
+            if (!confirm(`⚠️ Are you sure you want to clear ALL data from "${tableName}"?\n\nThis cannot be undone!`)) {
+                return;
+            }
+
+            const container = document.getElementById('managementResults');
+            container.innerHTML = '<div class="loading">Clearing...</div>';
+
+            try {
+                const response = await fetch(API_URL + '/table/' + tableName + '/clear', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': authHeader }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    container.innerHTML = `<div class="success">✅ ${data.message}</div>`;
+                    loadStats(); // Refresh stats
+                } else {
+                    container.innerHTML = `<div class="error">❌ ${data.error}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
+        }
+
+        async function clearAllDatabase() {
+            if (!confirm('⚠️ NUCLEAR OPTION ⚠️\n\nAre you ABSOLUTELY SURE you want to clear ALL data from ALL tables?\n\nThis will delete:\n- All users\n- All partnerships\n- All signals\n- All settings\n\nTHIS CANNOT BE UNDONE!')) {
+                return;
+            }
+
+            if (!confirm('Final confirmation: Type "yes" to proceed.\n\nJust kidding - click OK to confirm deletion.')) {
+                return;
+            }
+
+            const container = document.getElementById('managementResults');
+            container.innerHTML = '<div class="loading">Clearing entire database...</div>';
+
+            try {
+                const response = await fetch(API_URL + '/database/clear-all', {
+                    method: 'DELETE',
+                    headers: { 'Authorization': authHeader }
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    const resultsHtml = data.results.map(r =>
+                        `<div>${r.table}: ${r.status === 'cleared' ? '✅' : '❌'} ${r.status}</div>`
+                    ).join('');
+                    container.innerHTML = `<div class="success"><h4>✅ ${data.message}</h4>${resultsHtml}</div>`;
+                    loadStats(); // Refresh stats
+                } else {
+                    container.innerHTML = `<div class="error">❌ ${data.error}</div>`;
+                }
+            } catch (error) {
+                container.innerHTML = `<div class="error">❌ Error: ${error.message}</div>`;
+            }
         }
 
         async function loadStats() {
