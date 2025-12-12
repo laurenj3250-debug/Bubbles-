@@ -193,217 +193,280 @@ export default function HomeScreen({ navigation }) {
     setRefreshing(false);
   };
 
+  const sendLocationSignal = async () => {
+    try {
+      console.log('📍 Requesting location permission...');
+
+      // Check platform and use appropriate location API
+      if (Platform.OS === 'web') {
+        // Use browser Geolocation API on web
+        if (!navigator.geolocation) {
+          console.warn('Geolocation not supported on this browser');
+          return;
+        }
+
+        navigator.geolocation.getCurrentPosition(
+          async (position) => {
+            const { latitude, longitude, accuracy } = position.coords;
+            console.log('📍 Web location obtained:', { latitude, longitude });
+
+            await api.post('/signals/location', {
+              latitude,
+              longitude,
+              accuracy: accuracy || 0
+            });
+            console.log('✅ Location signal sent (web)');
+          },
+          (error) => {
+            console.warn('Location permission denied or unavailable:', error.message);
+          },
+          { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+        );
+      } else {
+        // Use expo-location on native
+        const { status } = await Location.requestForegroundPermissionsAsync();
+
+        if (status !== 'granted') {
+          console.warn('Location permission denied');
+          return;
+        }
+
+        const location = await Location.getCurrentPositionAsync({});
+        console.log('📍 Native location obtained:', location.coords);
+
+        await api.post('/signals/location', {
+          latitude: location.coords.latitude,
+          longitude: location.coords.longitude,
+          accuracy: location.coords.accuracy
+        });
+        console.log('✅ Location signal sent (native)');
+      }
+    } catch (error) {
+      console.error('Location signal error:', error);
+      // Don't throw - fail gracefully
+    }
+  };
+
   const shareLocation = async () => {
     try {
       setIsSharing(true);
 
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Permission to access location was denied');
-        return;
-      }
-
-      const location = await Location.getCurrentPositionAsync({});
-
-      // Get readable address
-      let placeName = '';
-      try {
-        const address = await Location.reverseGeocodeAsync({
-          latitude: location.coords.latitude,
-          longitude: location.coords.longitude
-        });
-
-        if (address.length > 0) {
-          const addr = address[0];
-          placeName = addr.name || addr.street || addr.city;
+      // Request permission for native platforms
+      if (Platform.OS !== 'web') {
+        const { status } = await Location.requestForegroundPermissionsAsync();
+        if (status !== 'granted') {
+          Alert.alert('Permission Denied', 'Permission to access location was denied');
+          return;
         }
-      } catch (e) {
-        console.log('Geocoding failed', e);
       }
 
-      await api.post('/signals/location', {
-        latitude: location.coords.latitude,
+      let location;
+      if (Platform.OS === 'web') {
+        // For web, we'll rely on the browser's geolocation API directly for the signal,
+        // but we still need to get it here for geocoding and alert.
+        // This might lead to a double prompt on some browsers, but ensures consistency.
+        location = await new Promise((resolve, reject) => {
+          if (!navigator.geolocation) {
+            reject(new Error('Geolocation not supported on this browser'));
+            return;
+          }
+          navigator.geolocation.getCurrentPosition(
+            (pos) => resolve({ coords: pos.coords }),
+            (err) => reject(err),
+            { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
+          );
+        });
+      } else {
+        location = await Location.getCurrentPositionAsync({});
+      }
+
+      // Send the location signal (handled by sendLocationSignal for platform specifics)
+      await sendLocationSignal();
+
+      // Get readable address (only if location data is available)
+      let placeName = '';
+      latitude: location.coords.latitude,
         longitude: location.coords.longitude,
-        accuracy: location.coords.accuracy,
-        placeName: placeName || 'Unknown Location',
-        placeType: 'current'
-      });
+          accuracy: location.coords.accuracy,
+            placeName: placeName || 'Unknown Location',
+              placeType: 'current'
+    });
 
-      Alert.alert(
-        '📍 Location Shared',
-        `Your partner can now see you${placeName ? ` at ${placeName}` : ''}!`,
-        [{ text: 'OK' }]
-      );
-
-    } catch (error) {
-      console.error('Share location error:', error);
-      const errorMessage = error.response?.data?.error || 'Could not share location. Please check your connection and try again.';
-      Alert.alert('Unable to Share Location', errorMessage, [
-        { text: 'OK', style: 'cancel' }
-      ]);
-    } finally {
-      setIsSharing(false);
-    }
-  };
-
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
-        <View style={styles.loadingContainer}>
-          <Text style={[theme.textStyles.h3, styles.loadingText]}>Loading Sugarbum...</Text>
-        </View>
-      </SafeAreaView>
+    Alert.alert(
+      '📍 Location Shared',
+      `Your partner can now see you${placeName ? ` at ${placeName}` : ''}!`,
+      [{ text: 'OK' }]
     );
-  }
 
-  if (!partner) {
-    return (
-      <SafeAreaView style={styles.container}>
-        <StatusBar barStyle="dark-content" />
-        <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
-        <ScrollView
-          contentContainerStyle={styles.emptyContainer}
-          refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        >
-          <Image source={require('../../assets/icons/couple.png')} style={styles.emptyIcon} resizeMode="contain" />
-          <Text style={[theme.textStyles.h2, styles.emptyTitle]}>No Partner Yet</Text>
-          <Text style={[theme.textStyles.body, styles.emptyText]}>
-            Connect with your sugarbum to start sharing your daily moments
-          </Text>
-          <GentleButton
-            title="Find Your Partner"
-            onPress={() => navigation.navigate('Partner')}
-            variant="primary"
-            size="large"
-          />
-        </ScrollView>
-      </SafeAreaView>
-    );
+  } catch (error) {
+    console.error('Share location error:', error);
+    const errorMessage = error.response?.data?.error || 'Could not share location. Please check your connection and try again.';
+    Alert.alert('Unable to Share Location', errorMessage, [
+      { text: 'OK', style: 'cancel' }
+    ]);
+  } finally {
+    setIsSharing(false);
   }
+};
 
+if (isLoading) {
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-
-      {/* Layered decorative backgrounds - multiple patterns */}
-      <WavePattern color={theme.colors.sageGreen} opacity={0.06} />
-      <PatternBackground pattern="dots" color={theme.colors.teal} opacity={0.05} size="small" />
-      <PatternBackground pattern="diagonal-lines" color={theme.colors.lavender} opacity={0.04} size="large" />
-      <PatternBackground pattern="cross-dots" color={theme.colors.slate} opacity={0.03} size="medium" />
-
-      {/* Floating animated blobs */}
-      <BubbleAnimation color={theme.colors.teal} size={220} opacity={0.18} duration={25000} style={{ top: '-5%', right: '-15%' }} />
-      <AnimatedBlob color={theme.colors.lavender} size={180} opacity={0.2} shape="shape2" duration={30000} style={{ top: '15%', left: '-10%' }} />
-      <BubbleAnimation color={theme.colors.sageGreen} size={160} opacity={0.15} duration={22000} style={{ top: '35%', right: '-8%' }} />
-      <AnimatedBlob color={theme.colors.slate} size={200} opacity={0.12} shape="shape4" duration={28000} style={{ top: '55%', left: '-12%' }} />
-      <BubbleAnimation color={theme.colors.mutedPurple} size={140} opacity={0.16} duration={24000} style={{ bottom: '25%', right: '-5%' }} />
-      <AnimatedBlob color={theme.colors.peach} size={170} opacity={0.14} shape="shape2" duration={26000} style={{ bottom: '10%', left: '-8%' }} />
-      <BubbleAnimation color={theme.colors.mossGreen} size={130} opacity={0.18} duration={23000} style={{ bottom: '40%', right: '80%' }} />
-      <AnimatedBlob color={theme.colors.deepTeal} size={150} opacity={0.13} shape="shape1" duration={27000} style={{ top: '70%', right: '-6%' }} />
-
-      <ScrollView
-        style={styles.scrollView}
-        contentContainerStyle={styles.scrollContent}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-        showsVerticalScrollIndicator={false}
-      >
-        {/* Header */}
-        <View style={styles.header}>
-          <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <View>
-              <Text style={[theme.textStyles.h2, styles.headerTitle]}>
-                {partner.display_name || partner.name}'s Now
-              </Text>
-              <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
-                See what they're up to
-              </Text>
-            </View>
-            <TouchableOpacity onPress={() => navigation.navigate('Capsule')} style={{ padding: 8 }}>
-              <Image source={require('../../assets/icons/capsule.png')} style={styles.headerIcon} resizeMode="contain" />
-            </TouchableOpacity>
-            <TouchableOpacity
-              onPress={() => setIsTouchMode(!isTouchMode)}
-              style={{ padding: 8, backgroundColor: isTouchMode ? theme.colors.primary + '20' : 'transparent', borderRadius: 20 }}
-            >
-              <Image source={require('../../assets/icons/touch.png')} style={styles.headerIcon} resizeMode="contain" />
-            </TouchableOpacity>
-          </View>
-        </View>
-
-        {/* Error Banner */}
-        {error && (
-          <View style={styles.errorBanner}>
-            <Image source={require('../../assets/icons/warning.png')} style={styles.errorIcon} resizeMode="contain" />
-            <Text style={styles.errorText}>{error}</Text>
-            <TouchableOpacity onPress={loadData} style={styles.retryButton}>
-              <Text style={styles.retryText}>Retry</Text>
-            </TouchableOpacity>
-          </View>
-        )}
-
-        {/* Digital Touch Surface (Only active when mode is on) */}
-        {isTouchMode && (
-          <View
-            style={StyleSheet.absoluteFill}
-            {...panResponder.panHandlers}
-            zIndex={10} // Sit on top of scrollview
-          >
-            {/* Visual feedback that mode is on */}
-            <View style={{ position: 'absolute', top: 10, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 16 }}>
-              <Text style={{ color: 'white', fontWeight: 'bold' }}>Touch Mode Active</Text>
-            </View>
-          </View>
-        )}
-
-        {/* Main Status Card */}
-        <StatusCard
-          partner={partner}
-          signals={signals}
-          isOnline={isOnline}
-          lastSeen={lastSeen}
-        />
-
-        {/* Quick Actions */}
-        <QuickActions
-          partnerName={partner.display_name || partner.name}
-          onShareLocation={shareLocation}
-          isSharing={isSharing}
-        />
-
-        {/* Today's Moments Preview */}
-        <View style={styles.momentsSection}>
-          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>
-            Today's Moments
-          </Text>
-
-          <View style={styles.timelineDots}>
-            {[...Array(5)].map((_, i) => (
-              <View
-                key={i}
-                style={[
-                  styles.dot,
-                  i < 3 && styles.dotActive,
-                ]}
-              />
-            ))}
-          </View>
-
-          <Text style={[theme.textStyles.bodySmall, styles.momentsText]}>
-            3 moments shared today
-          </Text>
-        </View>
-      </ScrollView>
-      {/* Digital Touch Visuals (Always render so we can see partner) */}
-      <TouchOverlay userId={user?.id} partnerId={partner?.id} myPosition={myTouchPos} />
-
-      <LoveBombOverlay
-        isVisible={showLoveBomb}
-        onDismiss={() => setShowLoveBomb(false)}
-      />
+      <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
+      <View style={styles.loadingContainer}>
+        <Text style={[theme.textStyles.h3, styles.loadingText]}>Loading Sugarbum...</Text>
+      </View>
     </SafeAreaView>
   );
+}
+
+if (!partner) {
+  return (
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="dark-content" />
+      <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
+      <ScrollView
+        contentContainerStyle={styles.emptyContainer}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      >
+        <Image source={require('../../assets/icons/couple.png')} style={styles.emptyIcon} resizeMode="contain" />
+        <Text style={[theme.textStyles.h2, styles.emptyTitle]}>No Partner Yet</Text>
+        <Text style={[theme.textStyles.body, styles.emptyText]}>
+          Connect with your sugarbum to start sharing your daily moments
+        </Text>
+        <GentleButton
+          title="Find Your Partner"
+          onPress={() => navigation.navigate('Partner')}
+          variant="primary"
+          size="large"
+        />
+      </ScrollView>
+    </SafeAreaView>
+  );
+}
+
+return (
+  <SafeAreaView style={styles.container}>
+    <StatusBar barStyle="dark-content" />
+
+    {/* Layered decorative backgrounds - multiple patterns */}
+    <WavePattern color={theme.colors.sageGreen} opacity={0.06} />
+    <PatternBackground pattern="dots" color={theme.colors.teal} opacity={0.05} size="small" />
+    <PatternBackground pattern="diagonal-lines" color={theme.colors.lavender} opacity={0.04} size="large" />
+    <PatternBackground pattern="cross-dots" color={theme.colors.slate} opacity={0.03} size="medium" />
+
+    {/* Floating animated blobs */}
+    <BubbleAnimation color={theme.colors.teal} size={220} opacity={0.18} duration={25000} style={{ top: '-5%', right: '-15%' }} />
+    <AnimatedBlob color={theme.colors.lavender} size={180} opacity={0.2} shape="shape2" duration={30000} style={{ top: '15%', left: '-10%' }} />
+    <BubbleAnimation color={theme.colors.sageGreen} size={160} opacity={0.15} duration={22000} style={{ top: '35%', right: '-8%' }} />
+    <AnimatedBlob color={theme.colors.slate} size={200} opacity={0.12} shape="shape4" duration={28000} style={{ top: '55%', left: '-12%' }} />
+    <BubbleAnimation color={theme.colors.mutedPurple} size={140} opacity={0.16} duration={24000} style={{ bottom: '25%', right: '-5%' }} />
+    <AnimatedBlob color={theme.colors.peach} size={170} opacity={0.14} shape="shape2" duration={26000} style={{ bottom: '10%', left: '-8%' }} />
+    <BubbleAnimation color={theme.colors.mossGreen} size={130} opacity={0.18} duration={23000} style={{ bottom: '40%', right: '80%' }} />
+    <AnimatedBlob color={theme.colors.deepTeal} size={150} opacity={0.13} shape="shape1" duration={27000} style={{ top: '70%', right: '-6%' }} />
+
+    <ScrollView
+      style={styles.scrollView}
+      contentContainerStyle={styles.scrollContent}
+      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+      showsVerticalScrollIndicator={false}
+    >
+      {/* Header */}
+      <View style={styles.header}>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <View>
+            <Text style={[theme.textStyles.h2, styles.headerTitle]}>
+              {partner.display_name || partner.name}'s Now
+            </Text>
+            <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
+              See what they're up to
+            </Text>
+          </View>
+          <TouchableOpacity onPress={() => navigation.navigate('Capsule')} style={{ padding: 8 }}>
+            <Image source={require('../../assets/icons/capsule.png')} style={styles.headerIcon} resizeMode="contain" />
+          </TouchableOpacity>
+          <TouchableOpacity
+            onPress={() => setIsTouchMode(!isTouchMode)}
+            style={{ padding: 8, backgroundColor: isTouchMode ? theme.colors.primary + '20' : 'transparent', borderRadius: 20 }}
+          >
+            <Image source={require('../../assets/icons/touch.png')} style={styles.headerIcon} resizeMode="contain" />
+          </TouchableOpacity>
+        </View>
+      </View>
+
+      {/* Error Banner */}
+      {error && (
+        <View style={styles.errorBanner}>
+          <Image source={require('../../assets/icons/warning.png')} style={styles.errorIcon} resizeMode="contain" />
+          <Text style={styles.errorText}>{error}</Text>
+          <TouchableOpacity onPress={loadData} style={styles.retryButton}>
+            <Text style={styles.retryText}>Retry</Text>
+          </TouchableOpacity>
+        </View>
+      )}
+
+      {/* Digital Touch Surface (Only active when mode is on) */}
+      {isTouchMode && (
+        <View
+          style={StyleSheet.absoluteFill}
+          {...panResponder.panHandlers}
+          zIndex={10} // Sit on top of scrollview
+        >
+          {/* Visual feedback that mode is on */}
+          <View style={{ position: 'absolute', top: 10, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 16 }}>
+            <Text style={{ color: 'white', fontWeight: 'bold' }}>Touch Mode Active</Text>
+          </View>
+        </View>
+      )}
+
+      {/* Main Status Card */}
+      <StatusCard
+        partner={partner}
+        signals={signals}
+        isOnline={isOnline}
+        lastSeen={lastSeen}
+      />
+
+      {/* Quick Actions */}
+      <QuickActions
+        partnerName={partner.display_name || partner.name}
+        onShareLocation={shareLocation}
+        isSharing={isSharing}
+      />
+
+      {/* Today's Moments Preview */}
+      <View style={styles.momentsSection}>
+        <Text style={[theme.textStyles.h3, styles.sectionTitle]}>
+          Today's Moments
+        </Text>
+
+        <View style={styles.timelineDots}>
+          {[...Array(5)].map((_, i) => (
+            <View
+              key={i}
+              style={[
+                styles.dot,
+                i < 3 && styles.dotActive,
+              ]}
+            />
+          ))}
+        </View>
+
+        <Text style={[theme.textStyles.bodySmall, styles.momentsText]}>
+          3 moments shared today
+        </Text>
+      </View>
+    </ScrollView>
+    {/* Digital Touch Visuals (Always render so we can see partner) */}
+    <TouchOverlay userId={user?.id} partnerId={partner?.id} myPosition={myTouchPos} />
+
+    <LoveBombOverlay
+      isVisible={showLoveBomb}
+      onDismiss={() => setShowLoveBomb(false)}
+    />
+  </SafeAreaView>
+);
 }
 
 const styles = StyleSheet.create({
