@@ -34,6 +34,11 @@ const getApiUrl = () => {
 
 const API_URL = getApiUrl();
 
+// Get base URL for admin panel (without /api suffix)
+export const getBaseUrl = () => {
+  return API_URL.replace('/api', '');
+};
+
 const api = axios.create({
   baseURL: API_URL,
   timeout: 10000,

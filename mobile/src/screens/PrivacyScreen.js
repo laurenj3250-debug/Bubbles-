@@ -218,8 +218,8 @@ export default function PrivacyScreen({ navigation }) {
             <View style={styles.settingInfo}>
               <Text style={styles.settingIcon}>🏃</Text>
               <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Activity & Fitness</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[theme.textStyles.body, styles.settingTitle]}>Activity & Fitness</Text>
+                <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                   Share steps, workouts, and health data
                 </Text>
               </View>
@@ -236,8 +236,8 @@ export default function PrivacyScreen({ navigation }) {
             <View style={styles.settingInfo}>
               <Text style={styles.settingIcon}>🎵</Text>
               <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Music</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[theme.textStyles.body, styles.settingTitle]}>Music</Text>
+                <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                   Share what you're listening to on Spotify
                 </Text>
               </View>
@@ -254,8 +254,8 @@ export default function PrivacyScreen({ navigation }) {
             <View style={styles.settingInfo}>
               <Text style={styles.settingIcon}>📅</Text>
               <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Calendar</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[theme.textStyles.body, styles.settingTitle]}>Calendar</Text>
+                <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                   Share your calendar status and events
                 </Text>
               </View>
@@ -272,8 +272,8 @@ export default function PrivacyScreen({ navigation }) {
             <View style={styles.settingInfo}>
               <Text style={styles.settingIcon}>📱</Text>
               <View style={styles.settingText}>
-                <Text style={styles.settingTitle}>Device Context</Text>
-                <Text style={styles.settingDescription}>
+                <Text style={[theme.textStyles.body, styles.settingTitle]}>Device Context</Text>
+                <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                   Share battery level and charging status
                 </Text>
               </View>
@@ -288,7 +288,7 @@ export default function PrivacyScreen({ navigation }) {
         </View>
 
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>Quick Actions</Text>
+          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>Quick Actions</Text>
           {!isPaused ? (
             <TouchableOpacity style={styles.pauseButton} onPress={pauseSharing}>
               <Text style={styles.pauseButtonText}>⏸️ Pause All Sharing</Text>
@@ -301,8 +301,8 @@ export default function PrivacyScreen({ navigation }) {
         </View>
 
         <View style={styles.infoBox}>
-          <Text style={styles.infoTitle}>🔒 Your Privacy Matters</Text>
-          <Text style={styles.infoText}>
+          <Text style={[theme.textStyles.body, styles.infoTitle]}>🔒 Your Privacy Matters</Text>
+          <Text style={[theme.textStyles.bodySmall, styles.infoText]}>
             Sugarbum is designed with privacy in mind. You have full control over what you
             share, and you can pause sharing anytime. Your data is never shared with
             anyone except your partner.

@@ -1,13 +1,20 @@
-import * as Location from 'expo-location';
-import { Alert } from 'react-native';
-import { BACKGROUND_LOCATION_TASK } from './LocationTask';
+import { Platform, Alert } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import { BACKGROUND_LOCATION_TASK } from './LocationTask';
 
 // Key for storing preference
 const LOCATION_TRACKING_KEY = 'is_location_tracking_enabled';
 
 export const startBackgroundLocation = async () => {
+    // Web doesn't support background location
+    if (Platform.OS === 'web') {
+        console.warn('Background location is not supported on web');
+        return false;
+    }
+
     try {
+        const Location = require('expo-location');
+
         // 1. Request Foreground Permission first
         const { status: foregroundStatus } = await Location.requestForegroundPermissionsAsync();
         if (foregroundStatus !== 'granted') {
@@ -48,7 +55,14 @@ export const startBackgroundLocation = async () => {
 };
 
 export const stopBackgroundLocation = async () => {
+    // Web doesn't support background location
+    if (Platform.OS === 'web') {
+        return false;
+    }
+
     try {
+        const Location = require('expo-location');
+
         const isRegistered = await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
         if (isRegistered) {
             await Location.stopLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
@@ -62,7 +76,13 @@ export const stopBackgroundLocation = async () => {
 };
 
 export const checkTrackingStatus = async () => {
+    // Web doesn't support background location
+    if (Platform.OS === 'web') {
+        return false;
+    }
+
     try {
+        const Location = require('expo-location');
         return await Location.hasStartedLocationUpdatesAsync(BACKGROUND_LOCATION_TASK);
     } catch (error) {
         return false;

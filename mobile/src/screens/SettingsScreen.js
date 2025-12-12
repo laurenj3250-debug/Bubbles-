@@ -15,10 +15,11 @@ import {
   ActivityIndicator,
   Image,
   Linking,
+  Platform,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../context/AuthContext';
-import api from '../config/api';
+import api, { getBaseUrl } from '../config/api';
 import { BlobCard, WavePattern, AnimatedBlob, PatternBackground, GentleButton } from '../components';
 import theme from '../theme';
 
@@ -147,8 +148,6 @@ export default function SettingsScreen({ navigation }) {
 
   const handleLogout = async () => {
     // Web doesn't support Alert.alert properly, use window.confirm
-    const Platform = require('react-native').Platform;
-
     if (Platform.OS === 'web') {
       if (window.confirm('Are you sure you want to logout?')) {
         await signOut();
@@ -224,7 +223,7 @@ export default function SettingsScreen({ navigation }) {
             <TouchableOpacity
               style={styles.settingItem}
               onPress={() => {
-                const adminUrl = 'http://localhost:3000/admin.html';
+                const adminUrl = `${getBaseUrl()}/admin.html`;
                 if (Platform.OS === 'web') {
                   window.open(adminUrl, '_blank');
                 } else {
@@ -460,6 +459,9 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.lightGray,
     ...theme.shadows.level1
   },
+  editAvatarIcon: {
+    fontSize: 18,
+  },
   editAvatarIconImage: {
     width: 20,
     height: 20,
@@ -485,6 +487,10 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.lightGray,
     ...theme.shadows.level1,
   },
+  settingIcon: {
+    fontSize: 28,
+    marginRight: theme.spacing.md,
+  },
   settingIconImage: {
     width: 28,
     height: 28,
@@ -508,6 +514,16 @@ const styles = StyleSheet.create({
   },
   aboutCard: {
     alignItems: 'center',
+  },
+  aboutTitleContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: theme.spacing.md,
+  },
+  aboutIconImage: {
+    width: 40,
+    height: 40,
+    marginRight: theme.spacing.sm,
   },
   aboutTitle: {
     fontSize: 40,
