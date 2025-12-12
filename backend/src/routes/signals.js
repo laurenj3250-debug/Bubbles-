@@ -8,8 +8,17 @@ const { db } = require('../config/firebase');
 const router = express.Router();
 router.use(authenticate);
 
+// Simple in-memory cache for partner IDs
+const partnerCache = new Map();
+
 // Helper: Get partner ID
 async function getPartnerId(userId) {
+  // Check cache (TTL 5 minutes)
+  const cached = partnerCache.get(userId);
+  if (cached && Date.now() - cached.timestamp < 5 * 60 * 1000) {
+    return cached.partnerId;
+  }
+
   const result = await pool.query(
     `SELECT CASE
        WHEN user1_id = $1 THEN user2_id
@@ -20,7 +29,14 @@ async function getPartnerId(userId) {
     [userId]
   );
 
-  return result.rows[0]?.partner_id || null;
+  const partnerId = result.rows[0]?.partner_id || null;
+
+  // Update cache
+  if (partnerId) {
+    partnerCache.set(userId, { partnerId, timestamp: Date.now() });
+  }
+
+  return partnerId;
 }
 
 // Helper: Check if sharing is allowed
@@ -95,21 +111,17 @@ router.post('/location', async (req, res) => {
       ]
     );
 
-    // Update Firebase for real-time sync
+    // Update Firebase for real-time sync (Fire and forget)
     if (db) {
-      try {
-        await db.ref(`users/${req.user.id}/status/location`).set({
-          latitude,
-          longitude,
-          accuracy,
-          placeName: placeName || null,
-          placeType: placeType || null,
-          weather: weather || null,
-          timestamp: Date.now()
-        });
-      } catch (firebaseError) {
-        console.error('Firebase write error (non-critical):', firebaseError.message);
-      }
+      db.ref(`users/${req.user.id}/status/location`).set({
+        latitude,
+        longitude,
+        accuracy,
+        placeName: placeName || null,
+        placeType: placeType || null,
+        weather: weather || null,
+        timestamp: Date.now()
+      }).catch(err => console.error('Firebase write error (non-critical):', err.message));
     }
 
     // Send Push Notification

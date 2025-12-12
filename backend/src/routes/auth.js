@@ -7,25 +7,27 @@ const { authenticate } = require('../middleware/auth');
 const router = express.Router();
 
 // Register
-router.post('/register', async (req, res) => {
+const { check } = require('express-validator');
+const { validate } = require('../middleware/validate');
+
+// ... imports
+
+// Register
+router.post('/register', [
+  check('email').isEmail().withMessage('Please provide a valid email').toLowerCase(),
+  check('password').isLength({ min: 8 }).withMessage('Password must be at least 8 characters'),
+  check('name').notEmpty().withMessage('Name is required').trim(),
+  validate
+], async (req, res) => {
   const client = await pool.connect();
 
   try {
     const { email, password, name, phone } = req.body;
 
-    // Validation
-    if (!email || !password || !name) {
-      return res.status(400).json({ error: 'Email, password, and name are required' });
-    }
-
-    if (password.length < 8) {
-      return res.status(400).json({ error: 'Password must be at least 8 characters' });
-    }
-
     // Check if user exists
     const existingUser = await client.query(
       'SELECT id FROM users WHERE email = $1',
-      [email.toLowerCase()]
+      [email]
     );
 
     if (existingUser.rows.length > 0) {
@@ -35,6 +37,7 @@ router.post('/register', async (req, res) => {
     // Hash password
     const passwordHash = await bcrypt.hash(password, 10);
 
+    // ... rest of the logic remains the same
     // Create user
     await client.query('BEGIN');
 
@@ -42,7 +45,7 @@ router.post('/register', async (req, res) => {
       `INSERT INTO users (email, password_hash, name, phone)
        VALUES ($1, $2, $3, $4)
        RETURNING id, email, name, phone, created_at`,
-      [email.toLowerCase(), passwordHash, name, phone || null]
+      [email, passwordHash, name, phone || null]
     );
 
     const user = result.rows[0];

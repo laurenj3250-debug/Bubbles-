@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   RefreshControl,
-  TouchableOpacity,
   Alert,
   SafeAreaView,
   StatusBar,
@@ -15,7 +14,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../config/api';
 import { database } from '../config/firebase';
 import { ref, onValue, off } from 'firebase/database';
-import { BlobCard, StatusAvatar, GentleButton, WavePattern, AnimatedBlob, PatternBackground } from '../components';
+import { GentleButton, WavePattern, AnimatedBlob, PatternBackground, StatusCard, QuickActions } from '../components';
 import theme from '../theme';
 
 export default function HomeScreen({ navigation }) {
@@ -27,20 +26,6 @@ export default function HomeScreen({ navigation }) {
   const [isSharing, setIsSharing] = useState(false);
   const [lastSeen, setLastSeen] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
-
-  // Helper function to format "time ago"
-  const getTimeAgo = (timestamp) => {
-    if (!timestamp) return 'Never';
-
-    const now = Date.now();
-    const then = new Date(timestamp).getTime();
-    const seconds = Math.floor((now - then) / 1000);
-
-    if (seconds < 60) return 'Just now';
-    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
-    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
-    return `${Math.floor(seconds / 86400)}d ago`;
-  };
 
   useEffect(() => {
     loadData();
@@ -230,7 +215,7 @@ export default function HomeScreen({ navigation }) {
       <PatternBackground pattern="diagonal-lines" color={theme.colors.lavender} opacity={0.04} size="large" />
       <PatternBackground pattern="cross-dots" color={theme.colors.slate} opacity={0.03} size="medium" />
 
-      {/* Floating animated blobs - many more for richness */}
+      {/* Floating animated blobs */}
       <AnimatedBlob color={theme.colors.teal} size={220} opacity={0.18} shape="shape1" duration={25000} style={{ top: '-5%', right: '-15%' }} />
       <AnimatedBlob color={theme.colors.lavender} size={180} opacity={0.2} shape="shape2" duration={30000} style={{ top: '15%', left: '-10%' }} />
       <AnimatedBlob color={theme.colors.sageGreen} size={160} opacity={0.15} shape="shape3" duration={22000} style={{ top: '35%', right: '-8%' }} />
@@ -257,104 +242,19 @@ export default function HomeScreen({ navigation }) {
         </View>
 
         {/* Main Status Card */}
-        <BlobCard style={styles.statusCard}>
-          <View style={styles.avatarContainer}>
-            <StatusAvatar
-              status="active"
-              size={140}
-              imageUrl={null}
-            />
-          </View>
-
-          <Text style={[theme.textStyles.h2, styles.partnerName]}>
-            {partner.name}
-          </Text>
-
-          {/* Online Status */}
-          <View style={styles.onlineStatusContainer}>
-            <View style={[
-              styles.onlineIndicator,
-              isOnline && styles.onlineIndicatorActive
-            ]} />
-            <Text style={[theme.textStyles.bodySmall, styles.onlineText]}>
-              {isOnline ? 'Online now' : `Last seen ${getTimeAgo(lastSeen)}`}
-            </Text>
-          </View>
-
-          {/* Status Details */}
-          <View style={styles.statusDetails}>
-            {/* Location */}
-            {signals?.location ? (
-              <View style={styles.statusItem}>
-                <Text style={styles.statusEmoji}>📍</Text>
-                <Text style={[theme.textStyles.body, styles.statusText]}>
-                  {signals.location.place_name || 'Unknown location'}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Music */}
-            {signals?.music?.track_name ? (
-              <View style={styles.statusItem}>
-                <Text style={styles.statusEmoji}>🎵</Text>
-                <Text style={[theme.textStyles.body, styles.statusText]}>
-                  {signals.music.track_name}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Weather */}
-            {signals?.location?.weather_temp ? (
-              <View style={styles.statusItem}>
-                <Text style={styles.statusEmoji}>☀️</Text>
-                <Text style={[theme.textStyles.body, styles.statusText]}>
-                  {Math.round(signals.location.weather_temp)}°C, {signals.location.weather_condition}
-                </Text>
-              </View>
-            ) : null}
-
-            {/* Activity */}
-            {signals?.activity?.total_steps ? (
-              <View style={styles.statusItem}>
-                <Text style={styles.statusEmoji}>🏃</Text>
-                <Text style={[theme.textStyles.body, styles.statusText]}>
-                  {signals.activity.total_steps.toLocaleString()} steps today
-                </Text>
-              </View>
-            ) : null}
-
-            <Text style={[theme.textStyles.caption, styles.lastSeen]}>
-              Last updated just now
-            </Text>
-          </View>
-        </BlobCard>
+        <StatusCard
+          partner={partner}
+          signals={signals}
+          isOnline={isOnline}
+          lastSeen={lastSeen}
+        />
 
         {/* Quick Actions */}
-        <View style={styles.quickActions}>
-          <Text style={[theme.textStyles.h3, styles.sectionTitle]}>
-            Quick Actions
-          </Text>
-
-          <View style={styles.actionButtons}>
-            <View style={styles.actionButton}>
-              <GentleButton
-                title="💌 Miss You"
-                onPress={() => Alert.alert('Miss You', 'Sending love to ' + partner.name + '!')}
-                variant="soft"
-                size="medium"
-              />
-            </View>
-
-            <View style={styles.actionButton}>
-              <GentleButton
-                title={isSharing ? "Sending..." : "📍 Share Location"}
-                onPress={shareLocation}
-                variant="secondary"
-                size="medium"
-              />
-            </View>
-          </View>
-        </View>
+        <QuickActions
+          partnerName={partner.name}
+          onShareLocation={shareLocation}
+          isSharing={isSharing}
+        />
 
         {/* Today's Moments Preview */}
         <View style={styles.momentsSection}>
@@ -405,69 +305,9 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     color: theme.colors.mediumGray,
   },
-  statusCard: {
-    marginBottom: theme.spacing.xl,
-  },
-  avatarContainer: {
-    alignItems: 'center',
-    marginBottom: theme.spacing.lg,
-  },
-  partnerName: {
-    color: theme.colors.deepNavy,
-    textAlign: 'center',
-    marginBottom: theme.spacing.sm,
-  },
-  onlineStatusContainer: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginBottom: theme.spacing.lg,
-    gap: theme.spacing.xs,
-  },
-  onlineIndicator: {
-    width: 8,
-    height: 8,
-    borderRadius: 4,
-    backgroundColor: theme.colors.mediumGray,
-  },
-  onlineIndicatorActive: {
-    backgroundColor: theme.colors.sageGreen,
-  },
-  onlineText: {
-    color: theme.colors.mediumGray,
-  },
-  statusDetails: {
-    gap: theme.spacing.md,
-  },
-  statusItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: theme.spacing.sm,
-  },
-  statusEmoji: {
-    fontSize: 20,
-  },
-  statusText: {
-    color: theme.colors.charcoal,
-    flex: 1,
-  },
-  lastSeen: {
-    color: theme.colors.mediumGray,
-    textAlign: 'center',
-    marginTop: theme.spacing.md,
-  },
-  quickActions: {
-    marginBottom: theme.spacing.xl,
-  },
   sectionTitle: {
     color: theme.colors.deepNavy,
     marginBottom: theme.spacing.lg,
-  },
-  actionButtons: {
-    gap: theme.spacing.md,
-  },
-  actionButton: {
-    width: '100%',
   },
   momentsSection: {
     marginBottom: theme.spacing.xl,
