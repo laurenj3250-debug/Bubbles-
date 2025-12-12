@@ -233,7 +233,8 @@ router.get('/health', checkAdminAuth, async (req, res) => {
     res.status(500).json({
       status: 'error',
       error: error.message
-    }
+    });
+  }
 });
 
 // Clear all data from a specific table

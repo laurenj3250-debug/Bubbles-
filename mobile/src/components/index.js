@@ -6,5 +6,6 @@ export { GentleButton } from './GentleButton';
 export { WavePattern } from './WavePattern';
 export { PatternBackground } from './PatternBackground';
 export { AnimatedBlob } from './AnimatedBlob';
+export { BubbleAnimation } from './BubbleAnimation';
 export { StatusCard } from './StatusCard';
 export { QuickActions } from './QuickActions';
