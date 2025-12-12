@@ -166,11 +166,18 @@ export default function HomeScreen({ navigation }) {
         placeType: 'current'
       });
 
-      Alert.alert('📍 Shared', 'Your location has been sent to your partner!');
+      Alert.alert(
+        '📍 Location Shared',
+        `Your partner can now see you${placeName ? ` at ${placeName}` : ''}!`,
+        [{ text: 'OK' }]
+      );
 
     } catch (error) {
       console.error('Share location error:', error);
-      Alert.alert('Error', 'Failed to share location');
+      const errorMessage = error.response?.data?.error || 'Could not share location. Please check your connection and try again.';
+      Alert.alert('Unable to Share Location', errorMessage, [
+        { text: 'OK', style: 'cancel' }
+      ]);
     } finally {
       setIsSharing(false);
     }

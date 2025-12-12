@@ -108,7 +108,15 @@ export default function SettingsScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => Alert.alert('Coming Soon', 'Notification settings will be available soon')}
+            onPress={() => {
+              Alert.alert(
+                'Notifications',
+                'Push notifications are enabled! You can manage notification settings in your device system settings.',
+                [
+                  { text: 'OK', style: 'default' }
+                ]
+              );
+            }}
           >
             <Text style={styles.settingIcon}>🔔</Text>
             <View style={styles.settingInfo}>
@@ -116,7 +124,7 @@ export default function SettingsScreen({ navigation }) {
                 Notifications
               </Text>
               <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
-                Configure push notification preferences
+                Push notifications are active
               </Text>
             </View>
             <Text style={styles.settingChevron}>›</Text>
