@@ -208,11 +208,19 @@ const createTables = async () => {
           id SERIAL PRIMARY KEY,
           user1_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
           user2_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          user1_alias VARCHAR(100), -- What user1 calls user2
+          user2_alias VARCHAR(100), -- What user2 calls user1
           status VARCHAR(50) DEFAULT 'pending',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           accepted_at TIMESTAMP,
           UNIQUE(user1_id, user2_id)
         )
+      `);
+
+      // Indexes for Partnerships
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_partnerships_users
+        ON partnerships(user1_id, user2_id, status)
       `);
 
       await client.query(`
@@ -239,6 +247,12 @@ const createTables = async () => {
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
         )
+      `);
+
+      // Index for Privacy
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_privacy_user
+        ON privacy_settings(user_id)
       `);
 
       await client.query(`
@@ -352,6 +366,11 @@ const createTables = async () => {
       await client.query(`
         CREATE INDEX IF NOT EXISTS idx_music_signals_user_timestamp
         ON music_signals(user_id, timestamp DESC)
+      `);
+
+      await client.query(`
+        CREATE INDEX IF NOT EXISTS idx_device_signals_user_timestamp
+        ON device_signals(user_id, timestamp DESC)
       `);
     }
 

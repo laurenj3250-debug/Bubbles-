@@ -14,7 +14,7 @@ export const StatusCard = memo(({ partner, signals, isOnline, lastSeen }) => {
                 <StatusAvatar
                     status="active"
                     size={140}
-                    imageUrl={null}
+                    imageUrl={partner.avatar_url}
                 />
             </View>
 

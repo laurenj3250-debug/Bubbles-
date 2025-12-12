@@ -2,6 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
+const compression = require('compression');
 const path = require('path');
 require('dotenv').config();
 
@@ -28,18 +29,18 @@ app.use(cors({
   origin: process.env.FRONTEND_URL || '*',
   credentials: true
 }));
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+app.use(compression());
+app.use(express.json({ limit: '50mb' }));
+app.use(express.urlencoded({ extended: true, limit: '50mb' }));
 
 // Serve static files from the React Native Web build
 app.use(express.static(path.join(__dirname, '../public')));
 
+const { authLimiter, apiLimiter } = require('./middleware/rateLimiters');
+
 // Rate limiting
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100 // limit each IP to 100 requests per windowMs
-});
-app.use('/api/', limiter);
+app.use('/api', apiLimiter); // Global API limit
+
 
 // Health check
 app.get('/health', async (req, res) => {
@@ -60,7 +61,7 @@ app.get('/health', async (req, res) => {
 });
 
 // API Routes
-app.use('/api/auth', authRoutes);
+app.use('/api/auth', authLimiter, authRoutes);
 app.use('/api/users', userRoutes);
 app.use('/api/partners', partnerRoutes);
 app.use('/api/signals', signalsRoutes);
@@ -102,7 +103,7 @@ Port: ${PORT}
 Environment: ${process.env.NODE_ENV || 'development'}
 Time: ${new Date().toISOString()}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  `);
+`);
 });
 
 // Graceful shutdown

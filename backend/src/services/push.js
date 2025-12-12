@@ -62,7 +62,7 @@ async function sendPushToPartner(userId, title, body, data = {}) {
             }
         }
 
-        console.log(`Push notification sent to partner ${partnerId}: "${title}"`);
+        console.log(`Push notification sent to partner of user ${userId}: "${title}"`);
 
     } catch (error) {
         console.error('Error in sendPushToPartner:', error);

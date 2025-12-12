@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import * as WebBrowser from 'expo-web-browser';
 import {
   View,
   Text,
@@ -25,11 +26,13 @@ export default function SettingsScreen({ navigation }) {
   const [nicknameModalVisible, setNicknameModalVisible] = useState(false);
   const [newNickname, setNewNickname] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [spotifyConnected, setSpotifyConnected] = useState(false);
 
   const { signOut } = React.useContext(AuthContext);
 
   useEffect(() => {
     loadUser();
+    checkSpotifyStatus();
   }, []);
 
   const loadUser = async () => {
@@ -40,6 +43,15 @@ export default function SettingsScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Load user error:', error);
+    }
+  };
+
+  const checkSpotifyStatus = async () => {
+    try {
+      const response = await api.get('/spotify/status');
+      setSpotifyConnected(response.data.connected);
+    } catch (error) {
+      console.log('Spotify status check failed', error);
     }
   };
 
@@ -93,6 +105,42 @@ export default function SettingsScreen({ navigation }) {
       Alert.alert('Error', 'Failed to update nickname');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleSpotifyPress = async () => {
+    if (spotifyConnected) {
+      Alert.alert(
+        'Disconnect Spotify',
+        'Are you sure you want to disconnect?',
+        [
+          { text: 'Cancel', style: 'cancel' },
+          {
+            text: 'Disconnect',
+            style: 'destructive',
+            onPress: async () => {
+              try {
+                await api.delete('/spotify/disconnect');
+                setSpotifyConnected(false);
+                Alert.alert('Disconnected', 'Spotify disconnected');
+              } catch (e) {
+                Alert.alert('Error', 'Failed to disconnect');
+              }
+            }
+          }
+        ]
+      );
+    } else {
+      try {
+        const response = await api.get('/spotify/auth-url');
+        if (response.data.url) {
+          await WebBrowser.openBrowserAsync(response.data.url);
+          // Check status after browser closes
+          setTimeout(checkSpotifyStatus, 1000);
+        }
+      } catch (error) {
+        Alert.alert('Error', 'Failed to start Spotify connection');
+      }
     }
   };
 
@@ -220,18 +268,20 @@ export default function SettingsScreen({ navigation }) {
 
           <TouchableOpacity
             style={styles.settingItem}
-            onPress={() => Alert.alert('Coming Soon', 'Connected services coming soon')}
+            onPress={handleSpotifyPress}
           >
             <Text style={styles.settingIcon}>🎵</Text>
             <View style={styles.settingInfo}>
               <Text style={[theme.textStyles.body, styles.settingTitle]}>
-                Connected Services
+                Spotify
               </Text>
               <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
-                Manage Spotify and other integrations
+                {spotifyConnected ? 'Connected' : 'Connect to share music'}
               </Text>
             </View>
-            <Text style={styles.settingChevron}>›</Text>
+            <Text style={styles.settingChevron}>
+              {spotifyConnected ? '✓' : '›'}
+            </Text>
           </TouchableOpacity>
         </View>
 

@@ -51,13 +51,31 @@ router.get('/callback', async (req, res) => {
       [userId, accessToken, refreshToken, expiresAt]
     );
 
-    res.json({
-      message: 'Spotify connected successfully',
-      expiresIn
-    });
+    // res.json({
+    //   message: 'Spotify connected successfully',
+    //   expiresIn
+    // });
+
+    res.send(`
+      <html>
+        <body style="display:flex;justify-content:center;align-items:center;height:100vh;background-color:#f8f9fa;font-family:sans-serif;">
+          <div style="text-align:center;padding:40px;background:white;border-radius:20px;box-shadow:0 4px 6px rgba(0,0,0,0.1);">
+            <h1 style="color:#1db954;margin-bottom:20px;">Connected!</h1>
+            <p style="color:#666;font-size:18px;">You have successfully linked Spotify.</p>
+            <p style="color:#888;margin-top:20px;">You can close this window now.</p>
+            <script>
+              setTimeout(() => {
+                // Try to close if opened via script
+                window.close();
+              }, 2000);
+            </script>
+          </div>
+        </body>
+      </html>
+    `);
   } catch (error) {
     console.error('Spotify callback error:', error);
-    res.status(500).json({ error: 'Failed to connect Spotify' });
+    res.status(500).send('<h1>Failed to connect Spotify</h1><p>Please try again.</p>');
   }
 });
 

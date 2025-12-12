@@ -131,11 +131,42 @@ router.post('/:partnershipId/respond', async (req, res) => {
   }
 });
 
+// Set nickname for partner
+router.put('/nickname', async (req, res) => {
+  try {
+    const { nickname } = req.body;
+
+    if (!nickname) {
+      return res.status(400).json({ error: 'Nickname is required' });
+    }
+
+    // Update the alias field corresponding to the current user
+    // user1_alias is the name user1 calls user2
+    // user2_alias is the name user2 calls user1
+    await pool.query(
+      `UPDATE partnerships 
+       SET user1_alias = CASE WHEN user1_id = $1 THEN $2 ELSE user1_alias END,
+           user2_alias = CASE WHEN user2_id = $1 THEN $2 ELSE user2_alias END
+       WHERE (user1_id = $1 OR user2_id = $1) AND status = 'accepted'`,
+      [req.user.id, nickname]
+    );
+
+    res.json({ message: 'Nickname updated', nickname });
+  } catch (error) {
+    console.error('Set nickname error:', error);
+    res.status(500).json({ error: 'Failed to set nickname' });
+  }
+});
+
 // Get current partner
 router.get('/current', async (req, res) => {
   try {
     const result = await pool.query(
       `SELECT p.id as partnership_id, p.accepted_at,
+              CASE 
+                WHEN p.user1_id = $1 THEN p.user1_alias 
+                ELSE p.user2_alias 
+              END as nickname_for_partner,
               u.id, u.name, u.email, u.avatar_url, u.phone
        FROM partnerships p
        JOIN users u ON (u.id = p.user1_id OR u.id = p.user2_id)
@@ -149,7 +180,16 @@ router.get('/current', async (req, res) => {
       return res.json({ partner: null });
     }
 
-    res.json({ partner: result.rows[0] });
+    const row = result.rows[0];
+
+    // If nickname is set, override the name or provide it separately
+    // Let's provide it separately so UI can decide
+    res.json({
+      partner: {
+        ...row,
+        display_name: row.nickname_for_partner || row.name
+      }
+    });
   } catch (error) {
     console.error('Get partner error:', error);
     res.status(500).json({ error: 'Failed to fetch partner' });
