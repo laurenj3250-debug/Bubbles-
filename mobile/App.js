@@ -5,6 +5,8 @@ import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 
+import { Platform } from 'react-native';
+
 // Screens
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -13,7 +15,11 @@ import PartnerScreen from './src/screens/PartnerScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import PrivacyScreen from './src/screens/PrivacyScreen';
 import CapsuleScreen from './src/screens/CapsuleScreen'; // [NEW]
-import './src/services/LocationTask'; // Register background task globally
+
+// Register background task globally (Native only)
+if (Platform.OS !== 'web') {
+  require('./src/services/LocationTask');
+}
 
 // Context
 import { AuthContext } from './src/context/AuthContext';
