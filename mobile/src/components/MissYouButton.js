@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert, Platform } from 'react-native';
 import api from '../config/api';
 import theme from '../theme';
 
@@ -12,19 +11,22 @@ export const MissYouButton = ({ partnerName }) => {
 
     const handlePressIn = () => {
         setIsCharging(true);
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        if (Platform.OS !== 'web') {
+            const Haptics = require('expo-haptics');
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+        }
 
         // Charge up animation
         Animated.sequence([
             Animated.timing(scaleAnim, {
                 toValue: 0.9, // Press in
                 duration: 100,
-                useNativeDriver: true,
+                useNativeDriver: Platform.OS !== 'web',
             }),
             Animated.timing(scaleAnim, {
                 toValue: 1.1, // Pulse out
                 duration: 1000,
-                useNativeDriver: true,
+                useNativeDriver: Platform.OS !== 'web',
             })
         ]).start();
 
@@ -38,7 +40,7 @@ export const MissYouButton = ({ partnerName }) => {
         Animated.spring(scaleAnim, {
             toValue: 1,
             friction: 3,
-            useNativeDriver: true,
+            useNativeDriver: Platform.OS !== 'web',
         }).start();
 
         sendMissYou();
@@ -46,12 +48,18 @@ export const MissYouButton = ({ partnerName }) => {
 
     const sendMissYou = async () => {
         try {
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            if (Platform.OS !== 'web') {
+                const Haptics = require('expo-haptics');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            }
             await api.post('/signals/miss-you');
             Alert.alert('Sent!', `Love sent to ${partnerName} ❤️`);
         } catch (error) {
             console.error('Miss you error:', error);
-            Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            if (Platform.OS !== 'web') {
+                const Haptics = require('expo-haptics');
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
+            }
         }
     };
 

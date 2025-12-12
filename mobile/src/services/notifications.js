@@ -1,19 +1,27 @@
 import { Platform } from 'react-native';
-import * as Device from 'expo-device';
-import * as Notifications from 'expo-notifications';
+// import * as Device from 'expo-device'; // Dynamic require
+// import * as Notifications from 'expo-notifications'; // Dynamic require
 import Constants from 'expo-constants';
 import api from '../config/api';
 
 // Configure how notifications behave when app is foregrounded
-Notifications.setNotificationHandler({
-    handleNotification: async () => ({
-        shouldShowAlert: true,
-        shouldPlaySound: true,
-        shouldSetBadge: false,
-    }),
-});
+if (Platform.OS !== 'web') {
+    const Notifications = require('expo-notifications');
+    Notifications.setNotificationHandler({
+        handleNotification: async () => ({
+            shouldShowAlert: true,
+            shouldPlaySound: true,
+            shouldSetBadge: false,
+        }),
+    });
+}
 
 export async function registerForPushNotificationsAsync() {
+    if (Platform.OS === 'web') return null;
+
+    const Notifications = require('expo-notifications');
+    const Device = require('expo-device');
+
     let token;
 
     if (Platform.OS === 'android') {
@@ -26,10 +34,7 @@ export async function registerForPushNotificationsAsync() {
     }
 
     if (Device.isDevice || Device.isSpyware) {
-        // Note: Device.isDevice is false on Simulators, so usually we return early.
-        // But for testing on Simulator, Expo sends a fake string sometimes? No, Simulator needs physical device for APNS/FCM usually.
-        // BUT Expo Go might handle it differently.
-        // Let's proceed with permission check.
+        // ...
     }
 
     const { status: existingStatus } = await Notifications.getPermissionsAsync();

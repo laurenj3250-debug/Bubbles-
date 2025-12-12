@@ -1,8 +1,7 @@
 import React, { useRef, useState, useEffect } from 'react';
-import { View, StyleSheet, PanResponder, Animated, Dimensions } from 'react-native';
+import { View, StyleSheet, PanResponder, Animated, Dimensions, Platform } from 'react-native';
 import { ref, set, onValue, off } from 'firebase/database';
 import { database } from '../config/firebase';
-import * as Haptics from 'expo-haptics';
 import theme from '../theme';
 
 const { width: SCREEN_WIDTH, height: SCREEN_HEIGHT } = Dimensions.get('window');
@@ -73,13 +72,16 @@ export const TouchOverlay = ({ userId, partnerId, myPosition }) => {
     }, [myPos, partnerPos]);
 
     const triggerSpark = () => {
-        Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        if (Platform.OS !== 'web') {
+            const Haptics = require('expo-haptics');
+            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Heavy);
+        }
 
         // Spark Animation
         sparkScale.setValue(0);
         Animated.sequence([
-            Animated.spring(sparkScale, { toValue: 1.5, friction: 3, useNativeDriver: true }),
-            Animated.timing(sparkScale, { toValue: 0, duration: 200, useNativeDriver: true })
+            Animated.spring(sparkScale, { toValue: 1.5, friction: 3, useNativeDriver: Platform.OS !== 'web' }),
+            Animated.timing(sparkScale, { toValue: 0, duration: 200, useNativeDriver: Platform.OS !== 'web' })
         ]).start();
     };
 
