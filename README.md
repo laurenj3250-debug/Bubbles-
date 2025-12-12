@@ -1,6 +1,12 @@
-# 🫧 Bubbles - Couples Context-Sharing App
+<div align="center">
+<img src="mobile/assets/icon.png" alt="Bubbles Logo" width="120"/>
 
-**Stay connected with your person through automatic life signals**
+# 🫧 Bubbles
+
+**Previously known as Sugarbum**
+
+*Stay connected with your person through automatic life signals*
+</div>
 
 Bubbles is a cross-platform mobile app that automatically shares bite-size life signals between couples — location + weather, activity/fitness, Spotify now-playing, calendar status, and device context — with push notifications and a Railway-powered backend.
 
@@ -55,11 +61,12 @@ Bubbles/
 
 **Mobile:**
 - React Native (Expo)
-- iOS + Android support
+- iOS + Android + **Web** support
 - React Navigation
 - HealthKit (iOS) / Google Fit (Android)
-- Expo Location, Calendar, Notifications
+- Expo Location, Calendar, Notifications (native-only features gracefully degraded on web)
 - AsyncStorage for local data
+- Platform-specific module guards for native APIs
 
 ## 🚀 Getting Started
 
@@ -88,8 +95,8 @@ npm run migrate
 npm run dev
 ```
 
-**Backend runs on:** `http://localhost:3000`  
-**Admin panel:** `http://localhost:3000/admin.html` (password: `admin123`)
+**Backend runs on:** `http://localhost:8080`  
+**Admin panel:** `http://localhost:8080/admin.html` (password: `admin123`)
 
 See [backend/README.md](backend/README.md) and [backend/DATABASE_SETUP.md](backend/DATABASE_SETUP.md) for detailed setup.
 
