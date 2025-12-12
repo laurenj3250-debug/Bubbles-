@@ -26,8 +26,13 @@ app.use(helmet({
   contentSecurityPolicy: false, // Disable for React Native Web
   crossOriginEmbedderPolicy: false
 }));
+// CORS configuration - more secure for production
+const corsOrigin = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? false : '*');
+if (!process.env.FRONTEND_URL && process.env.NODE_ENV === 'production') {
+  console.warn('⚠️  WARNING: FRONTEND_URL not set in production! CORS will block all requests.');
+}
 app.use(cors({
-  origin: process.env.FRONTEND_URL || '*',
+  origin: corsOrigin,
   credentials: true
 }));
 app.use(compression());
@@ -42,11 +47,13 @@ const { authLimiter, apiLimiter } = require('./middleware/rateLimiters');
 // Rate limiting
 app.use('/api', apiLimiter); // Global API limit
 
-// Request Logger
-app.use((req, res, next) => {
-  console.log(`[REQUEST] ${req.method} ${req.path}`);
-  next();
-});
+// Request Logger (only in development)
+if (process.env.NODE_ENV !== 'production') {
+  app.use((req, res, next) => {
+    console.log(`[REQUEST] ${req.method} ${req.path}`);
+    next();
+  });
+}
 
 
 // Health check

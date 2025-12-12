@@ -30,6 +30,7 @@ export default function HomeScreen({ navigation }) {
   const [isSharing, setIsSharing] = useState(false);
   const [lastSeen, setLastSeen] = useState(null);
   const [isOnline, setIsOnline] = useState(false);
+  const [error, setError] = useState(null);
 
   useEffect(() => {
     loadData();
@@ -43,8 +44,10 @@ export default function HomeScreen({ navigation }) {
       }
 
       await Promise.all([fetchPartner(), fetchSignals()]);
+      setError(null);
     } catch (error) {
       console.error('Load data error:', error);
+      setError('Unable to load data. Please check your connection and try again.');
     } finally {
       setIsLoading(false);
     }
@@ -323,6 +326,16 @@ export default function HomeScreen({ navigation }) {
           </View>
         </View>
 
+        {/* Error Banner */}
+        {error && (
+          <View style={styles.errorBanner}>
+            <Text style={styles.errorText}>⚠️ {error}</Text>
+            <TouchableOpacity onPress={loadData} style={styles.retryButton}>
+              <Text style={styles.retryText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        )}
+
         {/* Digital Touch Surface (Only active when mode is on) */}
         {isTouchMode && (
           <View
@@ -464,5 +477,30 @@ const styles = StyleSheet.create({
     color: theme.colors.mediumGray,
     textAlign: 'center',
     marginBottom: 24,
+  },
+  errorBanner: {
+    backgroundColor: '#FEE2E2',
+    padding: theme.spacing.md,
+    borderRadius: theme.borderRadius.medium,
+    marginBottom: theme.spacing.lg,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  errorText: {
+    color: '#991B1B',
+    fontSize: 14,
+    flex: 1,
+  },
+  retryButton: {
+    backgroundColor: '#DC2626',
+    paddingHorizontal: theme.spacing.md,
+    paddingVertical: theme.spacing.sm,
+    borderRadius: theme.borderRadius.small,
+  },
+  retryText: {
+    color: 'white',
+    fontWeight: '600',
+    fontSize: 14,
   },
 });

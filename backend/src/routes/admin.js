@@ -21,8 +21,6 @@ const checkAdminAuth = (req, res, next) => {
   const credentials = Buffer.from(base64Credentials, 'base64').toString('ascii');
   const [username, password] = credentials.split(':');
 
-  console.log('Checking password. Expected:', ADMIN_PASSWORD, 'Received:', password);
-
   if (password !== ADMIN_PASSWORD) {
     return res.status(401).json({ error: 'Invalid credentials' });
   }
@@ -30,14 +28,13 @@ const checkAdminAuth = (req, res, next) => {
   next();
 };
 
-// Config info (for debugging - remove in production)
-router.get('/config', (req, res) => {
+// Config info (requires authentication)
+router.get('/config', checkAdminAuth, (req, res) => {
   res.json({
     message: 'Admin panel configuration',
     passwordSet: !!process.env.ADMIN_PASSWORD,
-    defaultPassword: process.env.ADMIN_PASSWORD ? 'Custom password set in .env' : 'admin123 (default)',
-    hint: process.env.ADMIN_PASSWORD ? 'Check your .env file for ADMIN_PASSWORD' : 'Use default password: admin123',
-    database: isSQLite ? 'SQLite' : 'PostgreSQL'
+    database: isSQLite ? 'SQLite' : 'PostgreSQL',
+    nodeEnv: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -77,6 +74,11 @@ router.get('/table/:tableName', checkAdminAuth, async (req, res) => {
     const { tableName } = req.params;
     const limit = parseInt(req.query.limit) || 100;
     const offset = parseInt(req.query.offset) || 0;
+
+    // Validate table name format (only alphanumeric and underscore)
+    if (!/^[a-zA-Z_][a-zA-Z0-9_]*$/.test(tableName)) {
+      return res.status(400).json({ error: 'Invalid table name format' });
+    }
 
     // Validate table name to prevent SQL injection
     let validTables;
