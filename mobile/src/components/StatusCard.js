@@ -75,9 +75,9 @@ export const StatusCard = memo(({ partner, signals, isOnline, lastSeen }) => {
                     </View>
                 ) : null}
 
-                <Text style={[theme.textStyles.caption, styles.lastSeen]}>
+                {/* <Text style={[theme.textStyles.caption, styles.lastSeen]}>
                     Last updated just now
-                </Text>
+                </Text> */}
             </View>
         </BlobCard>
     );
