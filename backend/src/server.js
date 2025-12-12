@@ -30,6 +30,8 @@ app.use(helmet({
 const corsOrigin = process.env.FRONTEND_URL || (process.env.NODE_ENV === 'production' ? false : '*');
 if (!process.env.FRONTEND_URL && process.env.NODE_ENV === 'production') {
   console.warn('⚠️  WARNING: FRONTEND_URL not set in production! CORS will block all requests.');
+} else if (!process.env.FRONTEND_URL && process.env.NODE_ENV === 'development') {
+  console.warn('⚠️  WARNING: FRONTEND_URL not set in development! CORS is set to "*" (all origins). This is insecure for production. Set FRONTEND_URL to restrict allowed origins.');
 }
 app.use(cors({
   origin: corsOrigin,
