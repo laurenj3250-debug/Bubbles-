@@ -77,12 +77,20 @@ if (usePostgres) {
             resolve({ rows, rowCount: rows.length });
           } else if (sqliteText.trim().toUpperCase().includes('RETURNING')) {
             // INSERT/UPDATE with RETURNING
-            const stmt = sqlite.prepare(sqliteText);
+            // Extract table name from the query (works for INSERT INTO table_name ...)
+            const tableMatch = sqliteText.match(/INSERT\s+INTO\s+(\w+)/i);
+            const tableName = tableMatch ? tableMatch[1] : null;
+
+            // Remove RETURNING clause for SQLite (it doesn't support it)
+            const queryWithoutReturning = sqliteText.replace(/RETURNING\s+\*/i, '').trim();
+
+            const stmt = sqlite.prepare(queryWithoutReturning);
             const info = sqliteParams ? stmt.run(...sqliteParams) : stmt.run();
+
             // For RETURNING queries, we need to fetch the inserted/updated row
             const lastId = info.lastInsertRowid;
-            if (lastId) {
-              const selectStmt = sqlite.prepare(`SELECT * FROM users WHERE id = ?`);
+            if (lastId && tableName) {
+              const selectStmt = sqlite.prepare(`SELECT * FROM ${tableName} WHERE id = ?`);
               const rows = selectStmt.all(lastId);
               resolve({ rows, rowCount: rows.length });
             } else {

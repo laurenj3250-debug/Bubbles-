@@ -113,15 +113,20 @@ router.post('/location', async (req, res) => {
 
     // Update Firebase for real-time sync (Fire and forget)
     if (db) {
-      db.ref(`users/${req.user.id}/status/location`).set({
-        latitude,
-        longitude,
-        accuracy,
-        placeName: placeName || null,
-        placeType: placeType || null,
-        weather: weather || null,
+      const firebaseData = {
+        latitude: Number(latitude),
+        longitude: Number(longitude),
         timestamp: Date.now()
-      }).catch(err => console.error('Firebase write error (non-critical):', err.message));
+      };
+
+      // Only add optional fields if they exist
+      if (accuracy != null) firebaseData.accuracy = Number(accuracy);
+      if (placeName) firebaseData.placeName = placeName;
+      if (placeType) firebaseData.placeType = placeType;
+      if (weather) firebaseData.weather = weather;
+
+      db.ref(`users/${req.user.id}/status/location`).set(firebaseData)
+        .catch(err => console.error('Firebase write error (non-critical):', err.message));
     }
 
     // Send Push Notification
@@ -138,8 +143,9 @@ router.post('/location', async (req, res) => {
       signal: result.rows[0]
     });
   } catch (error) {
-    console.error('Location signal error:', error);
-    res.status(500).json({ error: 'Failed to share location' });
+    console.error('❌ Location signal error:', error.message);
+    console.error('Stack:', error.stack);
+    res.status(500).json({ error: 'Failed to share location', details: error.message });
   }
 });
 
