@@ -67,12 +67,12 @@ export const AnimatedBlob = ({
 
   return (
     <Animated.View
+      pointerEvents="none"
       style={[
         styles.container,
         {
           width: size,
           height: size,
-          pointerEvents: 'none',
         },
         animatedStyle,
         style,

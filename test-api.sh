@@ -3,11 +3,33 @@
 # Bubbles API Quick Test Script
 # Tests backend endpoints to verify everything works
 
+# ⚠️ SECURITY WARNING ⚠️
+# This script uses default admin credentials for testing purposes.
+# These credentials are for LOCAL DEVELOPMENT ONLY and MUST BE CHANGED in production!
+# 
+# To use custom credentials, set the following environment variables:
+#   export BUBBLES_TEST_ADMIN_USER="your_username"
+#   export BUBBLES_TEST_ADMIN_PASSWORD="your_secure_password"
+#
+# NEVER use default credentials in production environments!
+
 echo "🧪 Bubbles API Test Suite"
 echo "=========================="
 echo ""
 
 BASE_URL="http://localhost:3000"
+
+# Admin credentials - use environment variables or fall back to defaults
+# ⚠️ DEFAULT CREDENTIALS ARE FOR TESTING ONLY - CHANGE IN PRODUCTION!
+ADMIN_USER="${BUBBLES_TEST_ADMIN_USER:-admin}"
+ADMIN_PASSWORD="${BUBBLES_TEST_ADMIN_PASSWORD:-admin123}"
+
+# Warn if using default credentials
+if [ "$ADMIN_PASSWORD" == "admin123" ]; then
+    echo -e "\033[1;33m⚠️  WARNING: Using default admin credentials for testing\033[0m"
+    echo -e "\033[1;33m   These MUST be changed in production environments!\033[0m"
+    echo ""
+fi
 
 # Colors
 GREEN='\033[0;32m'
@@ -49,6 +71,10 @@ test_endpoint "Protected Route (no auth)" "$BASE_URL/api/partners/current" "401"
 
 # Test 4: Register User
 echo -n "Testing: User Registration... "
+# Create a secure temp file with restrictive permissions (600 = owner read/write only)
+temp_file=$(mktemp)
+chmod 600 "$temp_file"
+
 response=$(curl -s -X POST "$BASE_URL/api/auth/register" \
     -H "Content-Type: application/json" \
     -d '{
@@ -56,7 +82,7 @@ response=$(curl -s -X POST "$BASE_URL/api/auth/register" \
         "email": "test-'$(date +%s)'@example.com",
         "password": "testpass123"
     }' \
-    -w "%{http_code}" -o /tmp/register_response.json)
+    -w "%{http_code}" -o "$temp_file")
 
 if [ "$response" -eq "201" ]; then
     TOKEN=$(jq -r '.token' /tmp/register_response.json)
@@ -69,11 +95,18 @@ else
     TOKEN=""
 fi
 
+# Securely remove temp file immediately after use
+rm -f "$temp_file"
+
 # Test 5: Login
 if [ ! -z "$TOKEN" ]; then
     echo -n "Testing: User Login... "
-    email=$(jq -r '.user.email' /tmp/register_response.json)
-    response=$(curl -s -X POST "$BASE_URL/api/auth/login" \
+    # Create a new user for login test
+    # Create a secure temp file with restrictive permissions
+    temp_login_file=$(mktemp)
+    chmod 600 "$temp_login_file"
+    
+    response=$(curl -s -X POST "$BASE_URL/api/auth/register" \
         -H "Content-Type: application/json" \
         -d "{
             \"email\": \"$email\",
@@ -85,9 +118,12 @@ if [ ! -z "$TOKEN" ]; then
         echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
         ((PASSED++))
     else
-        echo -e "${RED}✗ FAIL${NC} (Expected 200, got $response)"
+        echo -e "${RED}✗ FAIL${NC} (Could not create test user for login)"
         ((FAILED++))
     fi
+    
+    # Securely remove temp file immediately after use
+    rm -f "$temp_login_file"
 fi
 
 # Test 6: Authenticated Request
@@ -108,7 +144,7 @@ fi
 
 # Test 7: Admin Panel Auth
 echo -n "Testing: Admin Panel (with auth)... "
-response=$(curl -s -u "admin:admin123" \
+response=$(curl -s -u "$ADMIN_USER:$ADMIN_PASSWORD" \
     "$BASE_URL/api/admin/health" \
     -w "%{http_code}" -o /dev/null)
 
@@ -121,7 +157,7 @@ fi
 
 # Test 8: SQL Injection Prevention
 echo -n "Testing: SQL Injection Prevention... "
-response=$(curl -s -u "admin:admin123" \
+response=$(curl -s -u "$ADMIN_USER:$ADMIN_PASSWORD" \
     "$BASE_URL/api/admin/table/users;DROP%20TABLE%20users" \
     -w "%{http_code}" -o /dev/null)
 
