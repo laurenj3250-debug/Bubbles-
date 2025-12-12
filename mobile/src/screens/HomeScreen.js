@@ -13,6 +13,8 @@ import {
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../config/api';
+import { database } from '../config/firebase';
+import { ref, onValue, off } from 'firebase/database';
 import { BlobCard, StatusAvatar, GentleButton, WavePattern, AnimatedBlob, PatternBackground } from '../components';
 import theme from '../theme';
 
@@ -23,6 +25,22 @@ export default function HomeScreen({ navigation }) {
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
+  const [lastSeen, setLastSeen] = useState(null);
+  const [isOnline, setIsOnline] = useState(false);
+
+  // Helper function to format "time ago"
+  const getTimeAgo = (timestamp) => {
+    if (!timestamp) return 'Never';
+
+    const now = Date.now();
+    const then = new Date(timestamp).getTime();
+    const seconds = Math.floor((now - then) / 1000);
+
+    if (seconds < 60) return 'Just now';
+    if (seconds < 3600) return `${Math.floor(seconds / 60)}m ago`;
+    if (seconds < 86400) return `${Math.floor(seconds / 3600)}h ago`;
+    return `${Math.floor(seconds / 86400)}d ago`;
+  };
 
   useEffect(() => {
     loadData();
@@ -42,6 +60,47 @@ export default function HomeScreen({ navigation }) {
       setIsLoading(false);
     }
   };
+
+  // Firebase real-time listener for partner status
+  useEffect(() => {
+    if (!partner) return;
+
+    // Subscribe to partner's real-time status
+    const statusRef = ref(database, `users/${partner.id}/status`);
+
+    const unsubscribe = onValue(statusRef, (snapshot) => {
+      const realtimeStatus = snapshot.val();
+
+      if (realtimeStatus) {
+        // Update signals with real-time data
+        setSignals(prevSignals => ({
+          ...prevSignals,
+          location: realtimeStatus.location || prevSignals?.location,
+          activity: realtimeStatus.activity || prevSignals?.activity,
+          music: realtimeStatus.music || prevSignals?.music,
+          device: realtimeStatus.device || prevSignals?.device,
+        }));
+
+        // Determine last seen and online status
+        const mostRecentTimestamp = Math.max(
+          realtimeStatus.location?.timestamp || 0,
+          realtimeStatus.activity?.timestamp || 0,
+          realtimeStatus.music?.timestamp || 0,
+          realtimeStatus.device?.timestamp || 0
+        );
+
+        if (mostRecentTimestamp) {
+          setLastSeen(mostRecentTimestamp);
+          // Consider online if activity within last 5 minutes
+          const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
+          setIsOnline(mostRecentTimestamp > fiveMinutesAgo);
+        }
+      }
+    });
+
+    // Cleanup listener on unmount
+    return () => off(statusRef);
+  }, [partner]);
 
   const fetchPartner = async () => {
     try {
@@ -204,6 +263,17 @@ export default function HomeScreen({ navigation }) {
             {partner.name}
           </Text>
 
+          {/* Online Status */}
+          <View style={styles.onlineStatusContainer}>
+            <View style={[
+              styles.onlineIndicator,
+              isOnline && styles.onlineIndicatorActive
+            ]} />
+            <Text style={[theme.textStyles.bodySmall, styles.onlineText]}>
+              {isOnline ? 'Online now' : `Last seen ${getTimeAgo(lastSeen)}`}
+            </Text>
+          </View>
+
           {/* Status Details */}
           <View style={styles.statusDetails}>
             {/* Location */}
@@ -338,7 +408,26 @@ const styles = StyleSheet.create({
   partnerName: {
     color: theme.colors.deepNavy,
     textAlign: 'center',
-    marginBottom: theme.spacing.xl,
+    marginBottom: theme.spacing.sm,
+  },
+  onlineStatusContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.lg,
+    gap: theme.spacing.xs,
+  },
+  onlineIndicator: {
+    width: 8,
+    height: 8,
+    borderRadius: 4,
+    backgroundColor: theme.colors.mediumGray,
+  },
+  onlineIndicatorActive: {
+    backgroundColor: theme.colors.sageGreen,
+  },
+  onlineText: {
+    color: theme.colors.mediumGray,
   },
   statusDetails: {
     gap: theme.spacing.md,

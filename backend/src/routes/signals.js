@@ -3,6 +3,7 @@ const pool = require('../config/database');
 const { authenticate } = require('../middleware/auth');
 const axios = require('axios');
 const { sendPushToPartner } = require('../services/push');
+const { db } = require('../config/firebase');
 
 const router = express.Router();
 router.use(authenticate);
@@ -81,7 +82,7 @@ router.post('/location', async (req, res) => {
       ? await getWeather(latitude, longitude)
       : null;
 
-    // Store location
+    // Store location in PostgreSQL (for history)
     const result = await pool.query(
       `INSERT INTO location_signals
        (user_id, latitude, longitude, accuracy, place_name, place_type,
@@ -93,6 +94,23 @@ router.post('/location', async (req, res) => {
         weather?.temp, weather?.condition, weather?.icon
       ]
     );
+
+    // Update Firebase for real-time sync
+    if (db) {
+      try {
+        await db.ref(`users/${req.user.id}/status/location`).set({
+          latitude,
+          longitude,
+          accuracy,
+          placeName: placeName || null,
+          placeType: placeType || null,
+          weather: weather || null,
+          timestamp: Date.now()
+        });
+      } catch (firebaseError) {
+        console.error('Firebase write error (non-critical):', firebaseError.message);
+      }
+    }
 
     // Send Push Notification
     const senderName = req.user.name || 'Your partner';

@@ -28,10 +28,10 @@ const getApiUrl = () => {
   const Platform = require('react-native').Platform;
   const fallbackHost = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
 
-  return `http://${fallbackHost}:3000/api`;
+  // return `http://${fallbackHost}:3000/api`;
 
-  // Production Railway URL (Uncomment for production)
-  // return 'https://bubbles-production-ac7a.up.railway.app/api';
+  // Production Railway URL
+  return 'https://sugarbum-backend-production.up.railway.app/api';
 };
 
 const API_URL = getApiUrl();
