@@ -16,7 +16,7 @@ import {
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
-import { WavePattern, GentleButton, AnimatedBlob, PatternBackground } from '../components';
+import { WavePattern, GentleButton, AnimatedBlob, BubbleAnimation, PatternBackground } from '../components';
 import theme from '../theme';
 
 export default function RegisterScreen({ navigation }) {
@@ -96,9 +96,9 @@ export default function RegisterScreen({ navigation }) {
       <PatternBackground pattern="grid" color={theme.colors.mossGreen} opacity={0.03} size="large" />
 
       {/* Floating blobs */}
-      <AnimatedBlob color={theme.colors.deepTeal} size={240} opacity={0.14} shape="shape2" duration={29000} style={{ top: '-12%', left: '-18%' }} />
+      <BubbleAnimation color={theme.colors.deepTeal} size={240} opacity={0.14} duration={29000} style={{ top: '-12%', left: '-18%' }} />
       <AnimatedBlob color={theme.colors.mutedPurple} size={190} opacity={0.17} shape="shape4" duration={31000} style={{ top: '25%', right: '-10%' }} />
-      <AnimatedBlob color={theme.colors.slate} size={170} opacity={0.13} shape="shape1" duration={27000} style={{ bottom: '15%', left: '-8%' }} />
+      <BubbleAnimation color={theme.colors.slate} size={170} opacity={0.13} duration={27000} style={{ bottom: '15%', left: '-8%' }} />
       <AnimatedBlob color={theme.colors.peach} size={150} opacity={0.15} shape="shape3" duration={24000} style={{ bottom: '45%', right: '82%' }} />
 
       <KeyboardAvoidingView

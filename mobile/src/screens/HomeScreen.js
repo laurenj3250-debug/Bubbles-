@@ -16,7 +16,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../config/api';
 import { database } from '../config/firebase';
 import { ref, onValue, off, set } from 'firebase/database';
-import { GentleButton, WavePattern, AnimatedBlob, PatternBackground, StatusCard, QuickActions } from '../components';
+import { GentleButton, WavePattern, AnimatedBlob, BubbleAnimation, PatternBackground, StatusCard, QuickActions } from '../components';
 import { LoveBombOverlay } from '../components/LoveBombOverlay';
 import { TouchOverlay } from '../components/TouchOverlay';
 import theme from '../theme';
@@ -293,13 +293,13 @@ export default function HomeScreen({ navigation }) {
       <PatternBackground pattern="cross-dots" color={theme.colors.slate} opacity={0.03} size="medium" />
 
       {/* Floating animated blobs */}
-      <AnimatedBlob color={theme.colors.teal} size={220} opacity={0.18} shape="shape1" duration={25000} style={{ top: '-5%', right: '-15%' }} />
+      <BubbleAnimation color={theme.colors.teal} size={220} opacity={0.18} duration={25000} style={{ top: '-5%', right: '-15%' }} />
       <AnimatedBlob color={theme.colors.lavender} size={180} opacity={0.2} shape="shape2" duration={30000} style={{ top: '15%', left: '-10%' }} />
-      <AnimatedBlob color={theme.colors.sageGreen} size={160} opacity={0.15} shape="shape3" duration={22000} style={{ top: '35%', right: '-8%' }} />
+      <BubbleAnimation color={theme.colors.sageGreen} size={160} opacity={0.15} duration={22000} style={{ top: '35%', right: '-8%' }} />
       <AnimatedBlob color={theme.colors.slate} size={200} opacity={0.12} shape="shape4" duration={28000} style={{ top: '55%', left: '-12%' }} />
-      <AnimatedBlob color={theme.colors.mutedPurple} size={140} opacity={0.16} shape="shape5" duration={24000} style={{ bottom: '25%', right: '-5%' }} />
+      <BubbleAnimation color={theme.colors.mutedPurple} size={140} opacity={0.16} duration={24000} style={{ bottom: '25%', right: '-5%' }} />
       <AnimatedBlob color={theme.colors.peach} size={170} opacity={0.14} shape="shape2" duration={26000} style={{ bottom: '10%', left: '-8%' }} />
-      <AnimatedBlob color={theme.colors.mossGreen} size={130} opacity={0.18} shape="shape3" duration={23000} style={{ bottom: '40%', right: '80%' }} />
+      <BubbleAnimation color={theme.colors.mossGreen} size={130} opacity={0.18} duration={23000} style={{ bottom: '40%', right: '80%' }} />
       <AnimatedBlob color={theme.colors.deepTeal} size={150} opacity={0.13} shape="shape1" duration={27000} style={{ top: '70%', right: '-6%' }} />
 
       <ScrollView
