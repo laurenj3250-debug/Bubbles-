@@ -95,8 +95,8 @@ npm run migrate
 npm run dev
 ```
 
-**Backend runs on:** `http://localhost:8080`  
-**Admin panel:** `http://localhost:8080/admin.html` (password: `admin123`)
+**Backend runs on:** `http://localhost:3000`  
+**Admin panel:** `http://localhost:3000/admin.html` (password: `admin123`)
 
 See [backend/README.md](backend/README.md) and [backend/DATABASE_SETUP.md](backend/DATABASE_SETUP.md) for detailed setup.
 

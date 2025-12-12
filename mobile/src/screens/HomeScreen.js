@@ -40,7 +40,12 @@ export default function HomeScreen({ navigation }) {
     try {
       const userData = await AsyncStorage.getItem('user');
       if (userData) {
-        setUser(JSON.parse(userData));
+        try {
+          setUser(JSON.parse(userData));
+        } catch (parseError) {
+          console.error('Invalid user data in storage, clearing...', parseError);
+          await AsyncStorage.removeItem('user');
+        }
       }
 
       await Promise.all([fetchPartner(), fetchSignals()]);
