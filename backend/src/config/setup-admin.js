@@ -48,9 +48,9 @@ async function setupAdmin() {
             const hashedPassword = await bcrypt.hash('h3nb3nny', 10);
 
             const result = await pool.query(`
-        INSERT INTO users (name, email, password, is_admin, is_immutable, created_at)
-        VALUES (?, ?, ?, ?, ?, datetime('now'))
-      `, ['Amps', 'amps@sugarbum.app', hashedPassword, true, true]);
+        INSERT INTO users (name, email, password, is_admin, is_immutable)
+        VALUES (?, ?, ?, ?, ?)
+      `, ['Amps', 'amps@sugarbum.app', hashedPassword, 1, 1]);
 
             console.log('✅ Created admin user: amps@sugarbum.app');
             console.log('   Password: h3nb3nny');
@@ -61,7 +61,7 @@ async function setupAdmin() {
         UPDATE users 
         SET is_admin = ?, is_immutable = ?
         WHERE email = ?
-      `, [true, true, 'amps@sugarbum.app']);
+      `, [1, 1, 'amps@sugarbum.app']);
 
             console.log('✅ Updated existing user to admin: amps@sugarbum.app');
         }
