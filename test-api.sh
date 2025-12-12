@@ -71,6 +71,10 @@ test_endpoint "Protected Route (no auth)" "$BASE_URL/api/partners/current" "401"
 
 # Test 4: Register User
 echo -n "Testing: User Registration... "
+# Create a secure temp file with restrictive permissions (600 = owner read/write only)
+temp_file=$(mktemp)
+chmod 600 "$temp_file"
+
 response=$(curl -s -X POST "$BASE_URL/api/auth/register" \
     -H "Content-Type: application/json" \
     -d '{
@@ -78,11 +82,11 @@ response=$(curl -s -X POST "$BASE_URL/api/auth/register" \
         "email": "test-'$(date +%s)'@example.com",
         "password": "testpass123"
     }' \
-    -w "%{http_code}" -o /tmp/register_response.json)
+    -w "%{http_code}" -o "$temp_file")
 
-if [ "$response" = "201" ]; then
-    TOKEN=$(jq -r '.token' /tmp/register_response.json)
-    USER_ID=$(jq -r '.user.id' /tmp/register_response.json)
+if [ "$response" == "201" ]; then
+    TOKEN=$(jq -r '.token' "$temp_file")
+    USER_ID=$(jq -r '.user.id' "$temp_file")
     echo -e "${GREEN}✓ PASS${NC} (HTTP $response, Token: ${TOKEN:0:20}...)"
     ((PASSED++))
 else
@@ -91,25 +95,51 @@ else
     TOKEN=""
 fi
 
+# Securely remove temp file immediately after use
+rm -f "$temp_file"
+
 # Test 5: Login
 if [ ! -z "$TOKEN" ]; then
     echo -n "Testing: User Login... "
-    email=$(jq -r '.user.email' /tmp/register_response.json)
-    response=$(curl -s -X POST "$BASE_URL/api/auth/login" \
+    # Create a new user for login test
+    # Create a secure temp file with restrictive permissions
+    temp_login_file=$(mktemp)
+    chmod 600 "$temp_login_file"
+    
+    response=$(curl -s -X POST "$BASE_URL/api/auth/register" \
         -H "Content-Type: application/json" \
-        -d "{
-            \"email\": \"$email\",
-            \"password\": \"testpass123\"
-        }" \
-        -w "%{http_code}" -o /dev/null)
+        -d '{
+            "name": "Test User Login",
+            "email": "test-login-'$(date +%s)'@example.com",
+            "password": "testpass123"
+        }' \
+        -w "%{http_code}" -o "$temp_login_file")
+    
+    if [ "$response" == "201" ]; then
+        email=$(jq -r '.user.email' "$temp_login_file")
+        
+        response=$(curl -s -X POST "$BASE_URL/api/auth/login" \
+            -H "Content-Type: application/json" \
+            -d "{
+                \"email\": \"$email\",
+                \"password\": \"testpass123\"
+            }" \
+            -w "%{http_code}" -o /dev/null)
 
-    if [ "$response" = "200" ]; then
-        echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
-        ((PASSED++))
+        if [ "$response" == "200" ]; then
+            echo -e "${GREEN}✓ PASS${NC} (HTTP $response)"
+            ((PASSED++))
+        else
+            echo -e "${RED}✗ FAIL${NC} (Expected 200, got $response)"
+            ((FAILED++))
+        fi
     else
-        echo -e "${RED}✗ FAIL${NC} (Expected 200, got $response)"
+        echo -e "${RED}✗ FAIL${NC} (Could not create test user for login)"
         ((FAILED++))
     fi
+    
+    # Securely remove temp file immediately after use
+    rm -f "$temp_login_file"
 fi
 
 # Test 6: Authenticated Request
