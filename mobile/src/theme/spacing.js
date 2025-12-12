@@ -21,24 +21,15 @@ export const borderRadius = {
 
 export const shadows = {
   level1: {
-    shadowColor: '#3D3B5E',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 8,
+    boxShadow: '0px 2px 8px rgba(61, 59, 94, 0.08)',
     elevation: 2,
   },
   level2: {
-    shadowColor: '#3D3B5E',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 16,
+    boxShadow: '0px 4px 16px rgba(61, 59, 94, 0.12)',
     elevation: 4,
   },
   level3: {
-    shadowColor: '#3D3B5E',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.16,
-    shadowRadius: 32,
+    boxShadow: '0px 8px 32px rgba(61, 59, 94, 0.16)',
     elevation: 8,
   },
 };

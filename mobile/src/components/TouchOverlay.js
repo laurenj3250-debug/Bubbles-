@@ -87,7 +87,7 @@ export const TouchOverlay = ({ userId, partnerId, myPosition }) => {
 
 
     return (
-        <View style={StyleSheet.absoluteFill} pointerEvents="box-none">
+        <View style={[StyleSheet.absoluteFill, { pointerEvents: 'box-none' }]}>
             {/* 
                 We cannot attach PanResponder here if we want button clicks to pass through.
                 Strategy: We will separate Input handling from Visualization.

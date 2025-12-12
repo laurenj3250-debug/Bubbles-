@@ -123,9 +123,7 @@ const styles = StyleSheet.create({
         fontSize: 120,
         marginBottom: 20,
         // Add shadow for depth
-        textShadowColor: 'rgba(0,0,0,0.2)',
-        textShadowOffset: { width: 0, height: 4 },
-        textShadowRadius: 10,
+        textShadow: '0px 4px 10px rgba(0, 0, 0, 0.2)',
     },
     text: {
         color: theme.colors.deepNavy,

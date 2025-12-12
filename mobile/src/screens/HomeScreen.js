@@ -9,6 +9,7 @@ import {
   SafeAreaView,
   StatusBar,
   PanResponder,
+  TouchableOpacity,
 } from 'react-native';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -95,7 +96,7 @@ export default function HomeScreen({ navigation }) {
   const lastBombTime = React.useRef(0);
 
   useEffect(() => {
-    if (!partner) return;
+    if (!partner || !user) return;
     const inboxRef = ref(database, `users/${user.id}/inbox/miss_you`);
 
     const unsubscribe = onValue(inboxRef, (snapshot) => {
@@ -124,6 +125,7 @@ export default function HomeScreen({ navigation }) {
     setMyTouchPos(x ? { x, y } : null);
 
     // Push to Firebase (Throttle 100ms)
+    if (!user) return;
     const now = Date.now();
     if (now - touchThrottle.current > 100 || !x) {
       const refPath = `users/${user.id}/status/touch`;
@@ -148,11 +150,11 @@ export default function HomeScreen({ navigation }) {
 
   useEffect(() => {
     // If we turn off touch mode, clear our status
-    if (!isTouchMode) {
+    if (!isTouchMode && user) {
       const refPath = `users/${user.id}/status/touch`;
       set(ref(database, refPath), null);
     }
-  }, [isTouchMode]);
+  }, [isTouchMode, user]);
 
   const fetchPartner = async () => {
     try {
@@ -374,7 +376,7 @@ export default function HomeScreen({ navigation }) {
         </View>
       </ScrollView>
       {/* Digital Touch Visuals (Always render so we can see partner) */}
-      <TouchOverlay userId={user.id} partnerId={partner?.id} myPosition={myTouchPos} />
+      <TouchOverlay userId={user?.id} partnerId={partner?.id} myPosition={myTouchPos} />
 
       <LoveBombOverlay
         isVisible={showLoveBomb}
