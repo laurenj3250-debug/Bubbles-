@@ -2,40 +2,12 @@ const pool = require('../config/database');
 const bcrypt = require('bcryptjs');
 
 /**
- * Add admin columns to users table and create default admin user
+ * Simple admin setup - assumes columns already exist
+ * Run add-admin-columns.js script first if needed
  */
 async function setupAdmin() {
     try {
         console.log('🔧 Running admin setup...');
-
-        // Add admin columns if they don't exist
-        try {
-            await pool.query(`
-        ALTER TABLE users 
-        ADD COLUMN is_admin BOOLEAN DEFAULT FALSE
-      `);
-            console.log('✅ Added is_admin column');
-        } catch (err) {
-            if (err.message.includes('duplicate column')) {
-                console.log('ℹ️  is_admin column already exists');
-            } else {
-                throw err;
-            }
-        }
-
-        try {
-            await pool.query(`
-        ALTER TABLE users 
-        ADD COLUMN is_immutable BOOLEAN DEFAULT FALSE
-      `);
-            console.log('✅ Added is_immutable column');
-        } catch (err) {
-            if (err.message.includes('duplicate column')) {
-                console.log('ℹ️  is_immutable column already exists');
-            } else {
-                throw err;
-            }
-        }
 
         // Check if admin user exists
         const adminCheck = await pool.query(
@@ -47,30 +19,42 @@ async function setupAdmin() {
             // Create admin user
             const hashedPassword = await bcrypt.hash('h3nb3nny', 10);
 
-            const result = await pool.query(`
-        INSERT INTO users (name, email, password, is_admin, is_immutable)
-        VALUES (?, ?, ?, ?, ?)
-      `, ['Amps', 'amps@sugarbum.app', hashedPassword, 1, 1]);
+            try {
+                await pool.query(`
+          INSERT INTO users (name, email, password, is_admin, is_immutable)
+          VALUES (?, ?, ?, ?, ?)
+        `, ['Amps', 'amps@sugarbum.app', hashedPassword, 1, 1]);
 
-            console.log('✅ Created admin user: amps@sugarbum.app');
-            console.log('   Password: h3nb3nny');
-            console.log('   User is immutable and cannot be deleted from database');
+                console.log('✅ Created admin user: amps@sugarbum.app');
+                console.log('   Password: h3nb3nny');
+            } catch (insertError) {
+                // Columns might not exist yet, insert without admin columns
+                console.log('ℹ️  Admin columns don\'t exist yet, creating user without admin flags');
+                await pool.query(`
+          INSERT INTO users (name, email, password)
+          VALUES (?, ?, ?)
+        `, ['Amps', 'amps@sugarbum.app', hashedPassword]);
+                console.log('✅ Created user: amps@sugarbum.app (run migration to add admin columns)');
+            }
         } else {
-            // Update existing user to be admin
-            await pool.query(`
-        UPDATE users 
-        SET is_admin = ?, is_immutable = ?
-        WHERE email = ?
-      `, [1, 1, 'amps@sugarbum.app']);
-
-            console.log('✅ Updated existing user to admin: amps@sugarbum.app');
+            // Try to update existing user to be admin
+            try {
+                await pool.query(`
+          UPDATE users 
+          SET is_admin = ?, is_immutable = ?
+          WHERE email = ?
+        `, [1, 1, 'amps@sugarbum.app']);
+                console.log('✅ Updated user to admin: amps@sugarbum.app');
+            } catch (updateError) {
+                console.log('ℹ️  Admin user exists but columns not added yet');
+            }
         }
 
         console.log('🎉 Admin setup complete!');
 
     } catch (error) {
-        console.error('❌ Admin setup failed:', error);
-        throw error;
+        console.error('⚠️  Admin setup error:', error.message);
+        // Don't throw - let server continue even if admin setup fails
     }
 }
 
