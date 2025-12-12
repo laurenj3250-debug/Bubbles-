@@ -13,7 +13,8 @@ import {
   Modal,
   TextInput,
   ActivityIndicator,
-  Image
+  Image,
+  Linking,
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../context/AuthContext';
@@ -214,6 +215,36 @@ export default function SettingsScreen({ navigation }) {
             </BlobCard>
           )}
         </View>
+
+        {/* Admin Panel Access - Only for admin users */}
+        {user?.is_admin && (
+          <View style={styles.section}>
+            <Text style={[theme.textStyles.h3, styles.sectionTitle]}>Admin</Text>
+
+            <TouchableOpacity
+              style={styles.settingItem}
+              onPress={() => {
+                const adminUrl = 'http://localhost:3000/admin.html';
+                if (Platform.OS === 'web') {
+                  window.open(adminUrl, '_blank');
+                } else {
+                  Linking.openURL(adminUrl);
+                }
+              }}
+            >
+              <Text style={styles.settingIcon}>👑</Text>
+              <View style={styles.settingInfo}>
+                <Text style={[theme.textStyles.body, styles.settingTitle]}>
+                  Admin Panel
+                </Text>
+                <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
+                  Database management & debugging
+                </Text>
+              </View>
+              <Text style={styles.settingChevron}>›</Text>
+            </TouchableOpacity>
+          </View>
+        )}
 
         {/* Settings Options */}
         <View style={styles.section}>
