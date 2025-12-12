@@ -12,6 +12,7 @@ import HomeScreen from './src/screens/HomeScreen';
 import PartnerScreen from './src/screens/PartnerScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import PrivacyScreen from './src/screens/PrivacyScreen';
+import './src/services/LocationTask'; // Register background task globally
 
 // Context
 import { AuthContext } from './src/context/AuthContext';

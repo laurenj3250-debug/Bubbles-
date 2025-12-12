@@ -15,6 +15,12 @@ import api from '../config/api';
 import { BlobCard, WavePattern, AnimatedBlob, PatternBackground } from '../components';
 import theme from '../theme';
 
+import {
+  startBackgroundLocation,
+  stopBackgroundLocation,
+  checkTrackingStatus
+} from '../services/LocationService';
+
 export default function PrivacyScreen({ navigation }) {
   const [settings, setSettings] = useState({
     share_location: true,
@@ -25,10 +31,11 @@ export default function PrivacyScreen({ navigation }) {
     paused_until: null,
   });
   const [isLoading, setIsLoading] = useState(true);
-  const [isSaving, setIsSaving] = useState(false);
+  const [backgroundLocationEnabled, setBackgroundLocationEnabled] = useState(false);
 
   useEffect(() => {
     loadSettings();
+    checkTrackingStatus().then(setBackgroundLocationEnabled);
   }, []);
 
   const loadSettings = async () => {
@@ -40,6 +47,16 @@ export default function PrivacyScreen({ navigation }) {
       Alert.alert('Error', 'Failed to load privacy settings');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const toggleBackgroundLocation = async (value) => {
+    if (value) {
+      const success = await startBackgroundLocation();
+      setBackgroundLocationEnabled(success);
+    } else {
+      await stopBackgroundLocation();
+      setBackgroundLocationEnabled(false);
     }
   };
 
@@ -160,11 +177,30 @@ export default function PrivacyScreen({ navigation }) {
             Control what information you share with your partner
           </Text>
 
+          {/* Background Location Toggle */}
+          <View style={styles.settingRow}>
+            <View style={styles.settingInfo}>
+              <Text style={styles.settingIcon}>🛰️</Text>
+              <View style={styles.settingText}>
+                <Text style={[theme.textStyles.body, styles.settingTitle]}>Background Updates</Text>
+                <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
+                  Update location even when app is closed ('Always' permission required)
+                </Text>
+              </View>
+            </View>
+            <Switch
+              value={backgroundLocationEnabled}
+              onValueChange={toggleBackgroundLocation}
+              trackColor={{ false: theme.colors.lightGray, true: theme.colors.sageGreen }}
+              thumbColor={backgroundLocationEnabled ? theme.colors.deepNavy : theme.colors.offWhite}
+            />
+          </View>
+
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
               <Text style={styles.settingIcon}>📍</Text>
               <View style={styles.settingText}>
-                <Text style={[theme.textStyles.body, styles.settingTitle]}>Location</Text>
+                <Text style={[theme.textStyles.body, styles.settingTitle]}>Live Location</Text>
                 <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
                   Share your location and weather
                 </Text>

@@ -15,11 +15,24 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.sugarbum.app",
       "infoPlist": {
-        "ITSAppUsesNonExemptEncryption": false
+        "ITSAppUsesNonExemptEncryption": false,
+        "NSLocationWhenInUseUsageDescription": "Sugarbum needs your location to show your partner where you are.",
+        "NSLocationAlwaysAndWhenInUseUsageDescription": "Sugarbum needs your location in the background to keep your partner updated even when the app is closed.",
+        "NSLocationAlwaysUsageDescription": "Sugarbum needs your location in the background to keep your partner updated even when the app is closed.",
+        "UIBackgroundModes": [
+          "location",
+          "fetch"
+        ]
       }
     },
     "android": {
       "package": "com.sugarbum.app",
+      "permissions": [
+        "ACCESS_COARSE_LOCATION",
+        "ACCESS_FINE_LOCATION",
+        "ACCESS_BACKGROUND_LOCATION",
+        "FOREGROUND_SERVICE"
+      ],
       "adaptiveIcon": {
         "foregroundImage": "./assets/adaptive-icon.png",
         "backgroundColor": "#191938"

@@ -30,6 +30,12 @@ A comprehensive review of the `Sugarbum` codebase was conducted to identify area
    - **Action:** Updated `.gitignore` to strictly exclude sensitive credentials.
    - **Benefit:** Reduced repository noise and improved security posture.
 
+#### 4. **Feature Expansion (Frontend & Backend)**
+   - **Profile Pictures:** Implemented end-to-end (Library -> Base64 -> API -> DB).
+   - **Nicknames:** Added alias system for partners (`user1_alias`), improving UX.
+   - **Spotify:** Implemented full Auth Code flow (Mobile -> WebBrowser -> Backend -> Success Page).
+   - **Notifications:** Fixed `ReferenceError` in push service and verified implementation.
+
 ---
 
 ### 🔮 Visionary Recommendations (Next Steps)
