@@ -19,7 +19,7 @@ export const StatusCard = memo(({ partner, signals, isOnline, lastSeen }) => {
             </View>
 
             <Text style={[theme.textStyles.h2, styles.partnerName]}>
-                {partner.name}
+                {partner.display_name || partner.name}
             </Text>
 
             {/* Online Status */}

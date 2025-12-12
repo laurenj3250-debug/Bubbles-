@@ -234,7 +234,7 @@ export default function HomeScreen({ navigation }) {
         {/* Header */}
         <View style={styles.header}>
           <Text style={[theme.textStyles.h2, styles.headerTitle]}>
-            {partner.name}'s Now
+            {partner.display_name || partner.name}'s Now
           </Text>
           <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
             See what they're up to
@@ -251,7 +251,7 @@ export default function HomeScreen({ navigation }) {
 
         {/* Quick Actions */}
         <QuickActions
-          partnerName={partner.name}
+          partnerName={partner.display_name || partner.name}
           onShareLocation={shareLocation}
           isSharing={isSharing}
         />

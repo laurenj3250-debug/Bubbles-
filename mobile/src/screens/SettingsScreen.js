@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import * as ImagePicker from 'expo-image-picker';
 import {
   View,
   Text,
@@ -8,15 +9,23 @@ import {
   Alert,
   SafeAreaView,
   StatusBar,
+  Modal,
+  TextInput,
+  ActivityIndicator,
+  Image
 } from 'react-native';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
-import { BlobCard, WavePattern, AnimatedBlob, PatternBackground } from '../components';
+import { BlobCard, WavePattern, AnimatedBlob, PatternBackground, GentleButton } from '../components';
 import theme from '../theme';
 
 export default function SettingsScreen({ navigation }) {
   const [user, setUser] = useState(null);
+  const [nicknameModalVisible, setNicknameModalVisible] = useState(false);
+  const [newNickname, setNewNickname] = useState('');
+  const [isLoading, setIsLoading] = useState(false);
+
   const { signOut } = React.useContext(AuthContext);
 
   useEffect(() => {
@@ -31,6 +40,59 @@ export default function SettingsScreen({ navigation }) {
       }
     } catch (error) {
       console.error('Load user error:', error);
+    }
+  };
+
+  const handlePickAvatar = async () => {
+    try {
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ImagePicker.MediaTypeOptions.Images,
+        allowsEditing: true,
+        aspect: [1, 1],
+        quality: 0.5,
+        base64: true,
+      });
+
+      if (!result.canceled && result.assets[0].base64) {
+        const base64Img = `data:image/jpeg;base64,${result.assets[0].base64}`;
+        await updateAvatar(base64Img);
+      }
+    } catch (error) {
+      Alert.alert('Error', 'Failed to pick image');
+    }
+  };
+
+  const updateAvatar = async (avatarUrl) => {
+    setIsLoading(true);
+    try {
+      await api.put('/users/me', { avatar_url: avatarUrl });
+
+      const updatedUser = { ...user, avatar_url: avatarUrl };
+      setUser(updatedUser);
+      await AsyncStorage.setItem('user', JSON.stringify(updatedUser));
+
+      Alert.alert('Success', 'Profile picture updated!');
+    } catch (error) {
+      console.error('Avatar update error:', error);
+      Alert.alert('Error', 'Failed to update profile picture');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleUpdateNickname = async () => {
+    if (!newNickname.trim()) return;
+
+    setIsLoading(true);
+    try {
+      await api.put('/partners/nickname', { nickname: newNickname });
+      Alert.alert('Success', 'Partner nickname updated!');
+      setNicknameModalVisible(false);
+      setNewNickname('');
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update nickname');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -80,6 +142,16 @@ export default function SettingsScreen({ navigation }) {
           <Text style={[theme.textStyles.h3, styles.sectionTitle]}>Account</Text>
           {user && (
             <BlobCard style={styles.userCard}>
+              <View style={styles.avatarPlaceholder}>
+                {user.avatar_url ? (
+                  <Image source={{ uri: user.avatar_url }} style={styles.avatarImage} />
+                ) : (
+                  <Text style={styles.avatarText}>{user.name.charAt(0)}</Text>
+                )}
+                <TouchableOpacity style={styles.editAvatarButton} onPress={handlePickAvatar}>
+                  <Text style={styles.editAvatarIcon}>📷</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={[theme.textStyles.h2, styles.userName]}>{user.name}</Text>
               <Text style={[theme.textStyles.body, styles.userEmail]}>{user.email}</Text>
             </BlobCard>
@@ -89,6 +161,22 @@ export default function SettingsScreen({ navigation }) {
         {/* Settings Options */}
         <View style={styles.section}>
           <Text style={[theme.textStyles.h3, styles.sectionTitle]}>Preferences</Text>
+
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => setNicknameModalVisible(true)}
+          >
+            <Text style={styles.settingIcon}>🏷️</Text>
+            <View style={styles.settingInfo}>
+              <Text style={[theme.textStyles.body, styles.settingTitle]}>
+                Partner Nickname
+              </Text>
+              <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
+                Give your partner a cute name
+              </Text>
+            </View>
+            <Text style={styles.settingChevron}>›</Text>
+          </TouchableOpacity>
 
           <TouchableOpacity
             style={styles.settingItem}
@@ -167,6 +255,52 @@ export default function SettingsScreen({ navigation }) {
           <Text style={[theme.textStyles.body, styles.logoutButtonText]}>Logout</Text>
         </TouchableOpacity>
       </ScrollView>
+
+      {/* Nickname Modal */}
+      <Modal
+        animationType="slide"
+        transparent={true}
+        visible={nicknameModalVisible}
+        onRequestClose={() => setNicknameModalVisible(false)}
+      >
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <Text style={[theme.textStyles.h3, styles.modalTitle]}>Set Partner Nickname</Text>
+            <Text style={[theme.textStyles.body, styles.modalSubtitle]}>
+              What do you call them?
+            </Text>
+
+            <TextInput
+              style={styles.textInput}
+              placeholder="e.g. My Pookie <3"
+              value={newNickname}
+              onChangeText={setNewNickname}
+              autoFocus
+            />
+
+            <View style={styles.modalButtons}>
+              <TouchableOpacity
+                style={[styles.modalButton, styles.cancelButton]}
+                onPress={() => setNicknameModalVisible(false)}
+              >
+                <Text style={styles.cancelButtonText}>Cancel</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={[styles.modalButton, styles.saveButton]}
+                onPress={handleUpdateNickname}
+                disabled={isLoading}
+              >
+                {isLoading ? (
+                  <ActivityIndicator color="white" />
+                ) : (
+                  <Text style={styles.saveButtonText}>Save</Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
@@ -198,6 +332,43 @@ const styles = StyleSheet.create({
   },
   userCard: {
     alignItems: 'center',
+  },
+  avatarPlaceholder: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+    backgroundColor: theme.colors.sageGreen,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: theme.spacing.md,
+    position: 'relative',
+  },
+  avatarImage: {
+    width: 100,
+    height: 100,
+    borderRadius: 50,
+  },
+  avatarText: {
+    fontSize: 40,
+    color: 'white',
+    fontWeight: 'bold'
+  },
+  editAvatarButton: {
+    position: 'absolute',
+    bottom: 0,
+    right: 0,
+    backgroundColor: 'white',
+    borderRadius: 18,
+    width: 36,
+    height: 36,
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderWidth: 1,
+    borderColor: theme.colors.lightGray,
+    ...theme.shadows.level1
+  },
+  editAvatarIcon: {
+    fontSize: 18
   },
   userName: {
     color: theme.colors.deepNavy,
@@ -266,4 +437,61 @@ const styles = StyleSheet.create({
     color: theme.colors.dustyRose,
     fontWeight: theme.typography.fontWeight.semibold,
   },
+  modalOverlay: {
+    flex: 1,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 20
+  },
+  modalContent: {
+    backgroundColor: 'white',
+    borderRadius: 20,
+    padding: 20,
+    width: '100%',
+    alignItems: 'center',
+    ...theme.shadows.level2
+  },
+  modalTitle: {
+    color: theme.colors.deepNavy,
+    marginBottom: 5
+  },
+  modalSubtitle: {
+    color: theme.colors.mediumGray,
+    marginBottom: 20
+  },
+  textInput: {
+    width: '100%',
+    padding: 15,
+    borderWidth: 1,
+    borderColor: theme.colors.lightGray,
+    borderRadius: 10,
+    marginBottom: 20,
+    fontSize: 16
+  },
+  modalButtons: {
+    flexDirection: 'row',
+    gap: 10,
+    width: '100%'
+  },
+  modalButton: {
+    flex: 1,
+    padding: 15,
+    borderRadius: 10,
+    alignItems: 'center'
+  },
+  cancelButton: {
+    backgroundColor: theme.colors.lightGray
+  },
+  saveButton: {
+    backgroundColor: theme.colors.deepTeal
+  },
+  cancelButtonText: {
+    color: theme.colors.charcoal,
+    fontWeight: 'bold'
+  },
+  saveButtonText: {
+    color: 'white',
+    fontWeight: 'bold'
+  }
 });
