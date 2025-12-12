@@ -4,8 +4,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { createBottomTabNavigator } from '@react-navigation/bottom-tabs';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
-
-import { Platform } from 'react-native';
+import { Platform, Text, View } from 'react-native';
 
 // Screens
 import LoginScreen from './src/screens/LoginScreen';
@@ -14,16 +13,20 @@ import HomeScreen from './src/screens/HomeScreen';
 import PartnerScreen from './src/screens/PartnerScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import PrivacyScreen from './src/screens/PrivacyScreen';
-import CapsuleScreen from './src/screens/CapsuleScreen'; // [NEW]
-
-// Register background task globally (Native only)
-if (Platform.OS !== 'web') {
-  require('./src/services/LocationTask');
-}
+import CapsuleScreen from './src/screens/CapsuleScreen';
 
 // Context
 import { AuthContext } from './src/context/AuthContext';
 import { registerForPushNotificationsAsync } from './src/services/notifications';
+
+// Register background task globally (Native only)
+if (Platform.OS !== 'web') {
+  try {
+    require('./src/services/LocationTask');
+  } catch (e) {
+    console.error('Failed to load LocationTask:', e);
+  }
+}
 
 const Stack = createNativeStackNavigator();
 const Tab = createBottomTabNavigator();
@@ -43,7 +46,7 @@ function AppTabs() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>🏠</Text>,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>🏠</Text>,
         }}
       />
       <Tab.Screen
@@ -51,7 +54,7 @@ function AppTabs() {
         component={PartnerScreen}
         options={{
           tabBarLabel: 'Partner',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>💑</Text>,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>💑</Text>,
         }}
       />
       <Tab.Screen
@@ -59,7 +62,7 @@ function AppTabs() {
         component={SettingsScreen}
         options={{
           tabBarLabel: 'Settings',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24 }}>⚙️</Text>,
+          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>⚙️</Text>,
         }}
       />
     </Tab.Navigator>
@@ -126,7 +129,12 @@ export default function App() {
   );
 
   if (isLoading) {
-    return null; // Show splash screen
+    // Return a simple loading screen instead of null to prevent white flash
+    return (
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+        <Text>Loading Bubbles...</Text>
+      </View>
+    );
   }
 
   return (
@@ -153,8 +161,3 @@ export default function App() {
     </AuthContext.Provider>
   );
 }
-
-const Text = ({ children, style }) => {
-  const { Text: RNText } = require('react-native');
-  return <RNText style={style}>{children}</RNText>;
-};

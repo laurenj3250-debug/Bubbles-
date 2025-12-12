@@ -14,9 +14,20 @@ const firebaseConfig = {
 };
 
 // Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app;
+let database;
 
-// Get database reference
-const database = getDatabase(app);
+try {
+    if (!firebaseConfig.apiKey) {
+        console.warn('Firebase config missing! Check your .env file or EXPO_PUBLIC_ variables.');
+        // Don't crash, just let it be undefined or mock it?
+        // App will likely fail later if it tries to use auth/db, but it should load UI first.
+    } else {
+        app = initializeApp(firebaseConfig);
+        database = getDatabase(app);
+    }
+} catch (error) {
+    console.error('Firebase Initialization Error:', error);
+}
 
 export { database };
