@@ -285,28 +285,19 @@ export default function HomeScreen({ navigation }) {
 
       // Get readable address (only if location data is available)
       let placeName = '';
-      latitude: location.coords.latitude,
-        longitude: location.coords.longitude,
-          accuracy: location.coords.accuracy,
-            placeName: placeName || 'Unknown Location',
-              placeType: 'current'
-    });
-
-    Alert.alert(
-      '📍 Location Shared',
       `Your partner can now see you${placeName ? ` at ${placeName}` : ''}!`,
-      [{ text: 'OK' }]
+        [{ text: 'OK' }]
     );
 
-  } catch (error) {
-    console.error('Share location error:', error);
-    const errorMessage = error.response?.data?.error || 'Could not share location. Please check your connection and try again.';
-    Alert.alert('Unable to Share Location', errorMessage, [
-      { text: 'OK', style: 'cancel' }
-    ]);
-  } finally {
-    setIsSharing(false);
-  }
+} catch (error) {
+  console.error('Share location error:', error);
+  const errorMessage = error.response?.data?.error || 'Could not share location. Please check your connection and try again.';
+  Alert.alert('Unable to Share Location', errorMessage, [
+    { text: 'OK', style: 'cancel' }
+  ]);
+} finally {
+  setIsSharing(false);
+}
 };
 
 if (isLoading) {
