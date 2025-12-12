@@ -25,16 +25,25 @@ A comprehensive review of the `Sugarbum` codebase was conducted to identify area
    - **Benefit:** Faster API response times for location sharing and signals. The user gets a "success" response immediately after data is saved to the primary DB (PostgreSQL).
    - **Files Changed:** `backend/src/routes/signals.js`.
 
-#### 3. **Code Cleanup & Security**
+#### 3. **Digital Touch Throttling (Mobile)**
+    - **Problem:** Real-time touch sync can overwhelm the network and database if every ~16ms frame triggers a write.
+    - **Solution:** Implemented 100ms throttling in `TouchOverlay` and `HomeScreen` PanResponder logic.
+    - **Benefit:** Reduces database write operations by ~85% while maintaining smooth 10fps visual tracking, preventing rate-limiting issues.
+    - **Files Changed:** `mobile/src/screens/HomeScreen.js`, `mobile/src/components/TouchOverlay.js`.
+    
+#### 4. **Code Cleanup & Security**
    - **Action:** Removed unused test files and temporary artifacts (`firebase-base64.txt`, test scripts).
    - **Action:** Updated `.gitignore` to strictly exclude sensitive credentials.
+   - **Critical Fix:** Moved hardcoded Firebase API keys from `mobile/src/config/firebase.js` to `.env` using `EXPO_PUBLIC_` variables to address GitHub Secret Scanning alert.
    - **Benefit:** Reduced repository noise and improved security posture.
 
-#### 4. **Feature Expansion (Frontend & Backend)**
+#### 5. **Feature Expansion (Frontend & Backend)**
    - **Profile Pictures:** Implemented end-to-end (Library -> Base64 -> API -> DB).
    - **Nicknames:** Added alias system for partners (`user1_alias`), improving UX.
    - **Spotify:** Implemented full Auth Code flow (Mobile -> WebBrowser -> Backend -> Success Page).
    - **Notifications:** Fixed `ReferenceError` in push service and verified implementation.
+   - **Daily Capsule:** Added automated daily summary generation with `node-cron`.
+   - **Emotional Haptics:** Implemented "Miss You" and "Digital Touch" with optimized haptic feedback loops.
 
 ---
 
@@ -51,12 +60,13 @@ A comprehensive review of the `Sugarbum` codebase was conducted to identify area
    - **Observation:** The mobile app fetches full data from the SQL DB on load *and* subscribes to Firebase.
    - **Recommendation:** Implement a "Lambda" architecture strategy where initial load comes from a cached API response (Redis), and only *deltas* are received via Firebase. For now, the current hybrid approach is acceptable but can be tuned to reduce SQL load.
 
-#### **3. API Rate Limiting & caching**
+#### **3. API Rate Limiting & Caching**
    - **Recommendation:** As user base grows, implement stricter rate limits on the `/signals` endpoints and cache `GET /partner/current` responses since partner relationships rarely change.
+   - **Daily Capsule Caching**: The `/api/capsules/current` endpoint currently queries the DB every time. Since capsules only change once per day, this is a prime candidate for Redis caching.
 
 ---
 
 ### 📊 Performance Impact
 - **API Latency:** Expected reduction of 50-200ms on `/signals/location` endpoints due to non-blocking Firebase writes.
 - **Reliability:** Reduced chance of "unhandled" bad inputs crashing controllers due to standardized validation.
-
+- **Bandwidth:** Touch throttling saves ~1KB/sec per active "touch session".

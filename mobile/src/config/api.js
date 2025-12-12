@@ -21,7 +21,7 @@ const getApiUrl = () => {
   // Let is just use the deteced host IP, fallback to localhost.
 
   if (debuggerHost) {
-    return `http://${localhost}:3000/api`;
+    return `http://${localhost}:8080/api`;
   }
 
   // Fallback for independent builds or when debuggerHost is missing

@@ -2,6 +2,40 @@ const express = require('express');
 const router = express.Router();
 const { generateCapsule } = require('../services/capsule');
 const pool = require('../config/database');
+const { authenticate } = require('../middleware/auth');
+
+// Simple in-memory cache for capsules (TTL: 1 hour)
+const capsuleCache = new Map();
+const CACHE_TTL = 60 * 60 * 1000; // 1 hour
+
+function getCachedCapsule(partnershipId, date) {
+    const key = `${partnershipId}-${date}`;
+    const cached = capsuleCache.get(key);
+    if (cached && Date.now() - cached.timestamp < CACHE_TTL) {
+        return cached.data;
+    }
+    return null;
+}
+
+function setCachedCapsule(partnershipId, date, data) {
+    const key = `${partnershipId}-${date}`;
+    capsuleCache.set(key, { data, timestamp: Date.now() });
+
+    // Simple cleanup: if cache size > 100, clear old entries
+    if (capsuleCache.size > 100) {
+        const entriesToDelete = [];
+        const now = Date.now();
+        for (const [k, v] of capsuleCache.entries()) {
+            if (now - v.timestamp > CACHE_TTL) {
+                entriesToDelete.push(k);
+            }
+        }
+        entriesToDelete.forEach(k => capsuleCache.delete(k));
+    }
+}
+
+// Apply middleware to all routes
+router.use(authenticate);
 
 // GET /api/capsules/current (Today's capsule or last generated)
 router.get('/current', async (req, res) => {
@@ -20,7 +54,15 @@ router.get('/current', async (req, res) => {
         }
         const partnershipId = partnershipResult.rows[0].id;
 
-        // Get latest capsule
+        // Check cache first (using today's date as key)
+        const today = new Date().toISOString().split('T')[0];
+        const cached = getCachedCapsule(partnershipId, today);
+        if (cached) {
+            console.log('✅ Serving capsule from cache');
+            return res.json({ capsule: cached, cached: true });
+        }
+
+        // Get latest capsule from DB
         const capsuleResult = await pool.query(
             `SELECT * FROM daily_capsules 
        WHERE partnership_id = $1 
@@ -32,7 +74,14 @@ router.get('/current', async (req, res) => {
             return res.json({ capsule: null });
         }
 
-        res.json({ capsule: capsuleResult.rows[0] });
+        const capsule = capsuleResult.rows[0];
+
+        // Cache if it's today's capsule
+        if (capsule.date === today) {
+            setCachedCapsule(partnershipId, today, capsule);
+        }
+
+        res.json({ capsule });
 
     } catch (error) {
         console.error('Get current capsule error:', error);

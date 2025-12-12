@@ -304,6 +304,37 @@ eas build --platform android # Android build
 
 See [Expo EAS Build docs](https://docs.expo.dev/build/introduction/) for details.
 
+## 🔧 Troubleshooting
+
+### Backend Won't Start
+
+**Issue:** Server crashes on startup  
+**Solution:** Check that migrations have run: `cd backend && npm run migrate`
+
+**Issue:** "Port already in use"  
+**Solution:** Kill existing node processes: `Get-Process node | Stop-Process -Force`
+
+### Database Issues
+
+**Issue:** Location/signal writes fail  
+**Solution:** Ensure you're using the latest code with the fixed SQLite adapter (commit 80e9fe1+)
+
+**Issue:** Firebase errors in logs  
+**Solution:** Firebase is optional. If not needed, you can ignore these warnings. The REST API works independently.
+
+### Verification Test Fails
+
+**Issue:** `verify-full-flow.js` returns errors  
+**Solution:** 
+1. Ensure server is running on port 8080
+2. Check database migrations completed: `npm run migrate`
+3. Review server logs for specific errors
+
+### Mobile App Can't Connect
+
+**Issue:** Network request failed  
+**Solution:** Update `mobile/src/config/api.js` with your machine's IP address (not localhost if testing on device)
+
 ## 🐛 Known Issues & Limitations
 
 - Location sharing requires manual permission grants

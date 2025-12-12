@@ -16,6 +16,7 @@ const signalsRoutes = require('./routes/signals');
 const spotifyRoutes = require('./routes/spotify');
 const privacyRoutes = require('./routes/privacy');
 const adminRoutes = require('./routes/admin');
+const capsuleRoutes = require('./routes/capsules');
 
 const app = express();
 const PORT = process.env.PORT || 3000;
@@ -40,6 +41,12 @@ const { authLimiter, apiLimiter } = require('./middleware/rateLimiters');
 
 // Rate limiting
 app.use('/api', apiLimiter); // Global API limit
+
+// Request Logger
+app.use((req, res, next) => {
+  console.log(`[REQUEST] ${req.method} ${req.path}`);
+  next();
+});
 
 
 // Health check

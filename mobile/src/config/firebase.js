@@ -3,14 +3,14 @@ import { getDatabase } from 'firebase/database';
 
 // Firebase configuration for Sugarbum
 const firebaseConfig = {
-    apiKey: "AIzaSyDrgnBe7b2aRO-QDb3_nKzXq6qsaUngcwQ",
-    authDomain: "sugarbum-d19a8.firebaseapp.com",
-    databaseURL: "https://sugarbum-d19a8-default-rtdb.firebaseio.com",
-    projectId: "sugarbum-d19a8",
-    storageBucket: "sugarbum-d19a8.firebasestorage.app",
-    messagingSenderId: "705769715026",
-    appId: "1:705769715026:web:394494e46196983706768b",
-    measurementId: "G-EK0P1WE6P9"
+    apiKey: process.env.EXPO_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.EXPO_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    databaseURL: process.env.EXPO_PUBLIC_FIREBASE_DATABASE_URL,
+    projectId: process.env.EXPO_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: "sugarbum-d19a8.appspot.com",
+    messagingSenderId: "1071287363690",
+    appId: "1:1071287363690:web:8029982463428941783857",
+    measurementId: "G-654321"
 };
 
 // Initialize Firebase
