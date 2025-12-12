@@ -79,7 +79,7 @@ export const PatternBackground = ({ pattern = 'dots', color = theme.colors.dusty
   };
 
   return (
-    <View style={[StyleSheet.absoluteFill, { pointerEvents: 'none' }]}>
+    <View style={StyleSheet.absoluteFill} pointerEvents="none">
       {renderPattern()}
     </View>
   );
