@@ -21,8 +21,8 @@ function setCachedCapsule(partnershipId, date, data) {
     const key = `${partnershipId}-${date}`;
     capsuleCache.set(key, { data, timestamp: Date.now() });
 
-    // Simple cleanup: if cache size > 100, clear old entries
-    if (capsuleCache.size > 100) {
+    // Periodic cleanup: every 20 writes or if cache > 100, clear old entries
+    if (capsuleCache.size >= 20 || capsuleCache.size > 100) {
         const entriesToDelete = [];
         const now = Date.now();
         for (const [k, v] of capsuleCache.entries()) {

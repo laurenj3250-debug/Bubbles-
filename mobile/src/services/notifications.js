@@ -33,8 +33,8 @@ export async function registerForPushNotificationsAsync() {
         });
     }
 
-    if (Device.isDevice || Device.isSpyware) {
-        // ...
+    if (Device.isDevice) {
+        // Check if running on a physical device (not simulator)
     }
 
     const { status: existingStatus } = await Notifications.getPermissionsAsync();

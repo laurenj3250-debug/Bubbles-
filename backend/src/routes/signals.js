@@ -8,6 +8,30 @@ const { db } = require('../config/firebase');
 const router = express.Router();
 router.use(authenticate);
 
+// Firebase write with retry logic
+async function writeToFirebaseWithRetry(ref, data, maxRetries = 2) {
+  for (let attempt = 0; attempt <= maxRetries; attempt++) {
+    try {
+      if (db) {
+        await db.ref(ref).set(data);
+        return true;
+      } else {
+        console.warn('Firebase not initialized, skipping write to:', ref);
+        return false;
+      }
+    } catch (err) {
+      if (attempt < maxRetries) {
+        console.warn(`Firebase write attempt ${attempt + 1} failed, retrying...`);
+        await new Promise(resolve => setTimeout(resolve, 1000 * (attempt + 1)));
+      } else {
+        console.error('Firebase write error after retries:', err.message);
+        return false;
+      }
+    }
+  }
+  return false;
+}
+
 // Simple in-memory cache for partner IDs
 const partnerCache = new Map();
 
@@ -125,8 +149,7 @@ router.post('/location', async (req, res) => {
       if (placeType) firebaseData.placeType = placeType;
       if (weather) firebaseData.weather = weather;
 
-      db.ref(`users/${req.user.id}/status/location`).set(firebaseData)
-        .catch(err => console.error('Firebase write error (non-critical):', err.message));
+      writeToFirebaseWithRetry(`users/${req.user.id}/status/location`, firebaseData);
     }
 
     // Send Push Notification
@@ -351,12 +374,14 @@ router.post('/miss-you', async (req, res) => {
     }
 
     // 1. Update Firebase for Realtime Trigger (The "Love Bomb")
-    if (db) {
-      db.ref(`users/${partnerId}/inbox/miss_you`).set({
-        senderId: req.user.id,
-        timestamp: Date.now(),
-        type: 'love_bomb'
-      }).catch(err => console.error('Firebase miss-you write error:', err.message));
+    const firebaseWriteSuccess = await writeToFirebaseWithRetry(`users/${partnerId}/inbox/miss_you`, {
+      senderId: req.user.id,
+      timestamp: Date.now(),
+      type: 'love_bomb'
+    });
+    if (!firebaseWriteSuccess) {
+      console.error('Failed to write "miss you" signal to Firebase for partner:', partnerId);
+      return res.status(500).json({ error: 'Failed to send love (realtime update failed)' });
     }
 
     // 2. Send Push Notification (High Priority)

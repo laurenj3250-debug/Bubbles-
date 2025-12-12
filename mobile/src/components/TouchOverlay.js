@@ -39,7 +39,7 @@ export const TouchOverlay = ({ userId, partnerId, myPosition }) => {
                 Animated.spring(partnerAnim, {
                     toValue: { x: data.x - 30, y: data.y - 30 }, // Center blob (-30 for radius)
                     friction: 7,
-                    useNativeDriver: true // translateXY
+                    useNativeDriver: Platform.OS !== 'web' // translateXY
                 }).start();
 
             } else {

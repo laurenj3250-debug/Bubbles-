@@ -30,8 +30,18 @@ export default function CapsuleScreen({ navigation }) {
 
             if (cap) {
                 // Parse JSON fields if they are strings (SQLite compat)
-                if (typeof cap.content === 'string') cap.content = JSON.parse(cap.content);
-                if (typeof cap.stats === 'string') cap.stats = JSON.parse(cap.stats);
+                try {
+                    if (typeof cap.content === 'string') cap.content = JSON.parse(cap.content);
+                } catch (e) {
+                    console.warn('Failed to parse capsule content:', e);
+                    cap.content = null;
+                }
+                try {
+                    if (typeof cap.stats === 'string') cap.stats = JSON.parse(cap.stats);
+                } catch (e) {
+                    console.warn('Failed to parse capsule stats:', e);
+                    cap.stats = null;
+                }
             }
 
             setCapsule(cap);

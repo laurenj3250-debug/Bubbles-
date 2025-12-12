@@ -72,11 +72,11 @@ export const AnimatedBlob = ({
         {
           width: size,
           height: size,
+          pointerEvents: 'none',
         },
         animatedStyle,
         style,
       ]}
-      pointerEvents="none"
     >
       <Svg width={size} height={size} viewBox="0 0 200 200">
         <Path d={blobPath} fill={color} opacity={opacity} />
