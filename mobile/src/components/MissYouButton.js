@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert, Platform } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Animated, Alert, Platform, Image } from 'react-native';
 import api from '../config/api';
 import theme from '../theme';
 
@@ -9,104 +9,83 @@ export const MissYouButton = ({ partnerName }) => {
     const [scaleAnim] = useState(new Animated.Value(1));
     const [isCharging, setIsCharging] = useState(false);
 
-    const handlePressIn = () => {
-        setIsCharging(true);
-        if (Platform.OS !== 'web') {
-            const Haptics = require('expo-haptics');
-            Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        }
-
-        // Charge up animation
+    const handlePress = async () => {
+        // Animate button
         Animated.sequence([
             Animated.timing(scaleAnim, {
-                toValue: 0.9, // Press in
+                toValue: 0.9,
                 duration: 100,
                 useNativeDriver: Platform.OS !== 'web',
             }),
-            Animated.timing(scaleAnim, {
-                toValue: 1.1, // Pulse out
-                duration: 1000,
+            Animated.spring(scaleAnim, {
+                toValue: 1,
+                friction: 3,
                 useNativeDriver: Platform.OS !== 'web',
-            })
+            }),
         ]).start();
 
-        // Charge up haptics simulation
-        // In a real loop we might increase intensity, here we just do one start impact
-    };
-
-    const handlePressOut = () => {
-        setIsCharging(false);
-        // Reset scale
-        Animated.spring(scaleAnim, {
-            toValue: 1,
-            friction: 3,
-            useNativeDriver: Platform.OS !== 'web',
-        }).start();
-
-        sendMissYou();
-    };
-
-    const sendMissYou = async () => {
-        try {
-            if (Platform.OS !== 'web') {
+        if (Platform.OS !== 'web') {
+            try {
                 const Haptics = require('expo-haptics');
                 Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+            } catch (e) {
+                // Ignore if haptics fail
             }
+        }
+
+        try {
             await api.post('/signals/miss-you');
-            Alert.alert('Sent!', `Love sent to ${partnerName} ❤️`);
         } catch (error) {
-            console.error('Miss you error:', error);
-            if (Platform.OS !== 'web') {
-                const Haptics = require('expo-haptics');
-                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Error);
-            }
+            console.error('Error sending miss you:', error);
         }
     };
 
     return (
-        <TouchableOpacity
-            activeOpacity={1}
-            onPressIn={handlePressIn}
-            onPressOut={handlePressOut}
-            style={styles.container}
-        >
-            <Animated.View style={[
-                styles.button,
-                { transform: [{ scale: scaleAnim }] },
-                isCharging && styles.charging
-            ]}>
-                <Text style={styles.icon}>💌</Text>
-                <Text style={styles.text}>Miss You</Text>
-            </Animated.View>
-        </TouchableOpacity>
+        <View style={styles.container}>
+            <TouchableOpacity
+                onPress={handlePress}
+                activeOpacity={0.9}
+                style={styles.touchable}
+            >
+                <Animated.View style={[styles.button, { transform: [{ scale: scaleAnim }] }]}>
+                    <View style={styles.iconContainer}>
+                        <Image source={require('../../assets/icons/heart.png')} style={styles.icon} resizeMode="contain" />
+                    </View>
+                    <Text style={styles.label}>Love Bomb</Text>
+                </Animated.View>
+            </TouchableOpacity>
+        </View>
     );
 };
 
 const styles = StyleSheet.create({
     container: {
-        width: '100%',
+        flex: 1,
+    },
+    touchable: {
+        flex: 1,
     },
     button: {
-        backgroundColor: theme.colors.softCoral,
-        paddingVertical: theme.spacing.lg,
-        paddingHorizontal: theme.spacing.xl,
-        borderRadius: theme.borderRadius.round,
-        flexDirection: 'row',
+        backgroundColor: theme.colors.primary,
+        borderRadius: theme.borderRadius.medium,
+        padding: theme.spacing.md,
         alignItems: 'center',
         justifyContent: 'center',
         ...theme.shadows.level1,
+        height: '100%', // Match height of neighbor
     },
-    charging: {
-        backgroundColor: theme.colors.peach,
-        ...theme.shadows.level2,
+    iconContainer: {
+        marginBottom: 4,
     },
     icon: {
-        fontSize: 24,
-        marginRight: theme.spacing.sm,
+        width: 24,
+        height: 24,
+        tintColor: theme.colors.offWhite,
     },
-    text: {
-        color: theme.colors.deepNavy,
+    label: {
+        color: theme.colors.offWhite,
+        fontSize: theme.typography.fontSize.xs,
         fontWeight: theme.typography.fontWeight.bold,
-        fontSize: 16,
+        textAlign: 'center',
     },
 });

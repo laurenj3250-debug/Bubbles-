@@ -30,6 +30,8 @@ const createTables = async () => {
           id INTEGER PRIMARY KEY AUTOINCREMENT,
           user1_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
           user2_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+          user1_alias VARCHAR(100),
+          user2_alias VARCHAR(100),
           status VARCHAR(50) DEFAULT 'pending',
           created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
           accepted_at TIMESTAMP,

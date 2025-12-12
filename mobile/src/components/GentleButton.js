@@ -1,5 +1,5 @@
 import React from 'react';
-import { TouchableOpacity, Text, StyleSheet, Platform } from 'react-native';
+import { TouchableOpacity, Text, StyleSheet, Platform, Image, View } from 'react-native';
 import theme from '../theme';
 
 /**
@@ -13,6 +13,7 @@ export const GentleButton = ({
   size = 'medium',
   style,
   textStyle,
+  icon,
 }) => {
   const handlePress = () => {
     // Gentle haptic feedback (mobile only)
@@ -77,16 +78,31 @@ export const GentleButton = ({
         style,
       ]}
     >
-      <Text
-        style={[
-          styles.text,
-          theme.textStyles.body,
-          { color: currentStyle.color },
-          textStyle,
-        ]}
-      >
-        {title}
-      </Text>
+      <View style={styles.contentContainer}>
+        {icon && (
+          <Image
+            source={icon}
+            style={[
+              styles.icon,
+              title ? styles.iconWithText : null,
+              { tintColor: variant === 'secondary' ? theme.colors.deepNavy : theme.colors.offWhite }
+            ]}
+            resizeMode="contain"
+          />
+        )}
+        {title && (
+          <Text
+            style={[
+              styles.text,
+              theme.textStyles.body,
+              { color: currentStyle.color },
+              textStyle,
+            ]}
+          >
+            {title}
+          </Text>
+        )}
+      </View>
     </TouchableOpacity>
   );
 };
@@ -98,8 +114,20 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     ...theme.shadows.level1,
   },
+  contentContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
   text: {
     fontWeight: theme.typography.fontWeight.semibold,
+  },
+  icon: {
+    width: 20,
+    height: 20,
+  },
+  iconWithText: {
+    marginRight: 8,
   },
 });
 

@@ -279,7 +279,7 @@ export default function SettingsScreen({ navigation }) {
             style={styles.settingItem}
             onPress={handleSpotifyPress}
           >
-            <Text style={styles.settingIcon}>🎵</Text>
+            <Image source={require('../../assets/icons/music.png')} style={styles.settingIconImage} resizeMode="contain" />
             <View style={styles.settingInfo}>
               <Text style={[theme.textStyles.body, styles.settingTitle]}>
                 Spotify
@@ -299,7 +299,10 @@ export default function SettingsScreen({ navigation }) {
           <Text style={[theme.textStyles.h3, styles.sectionTitle]}>About</Text>
 
           <BlobCard style={styles.aboutCard}>
-            <Text style={styles.aboutTitle}>💕 Sugarbum</Text>
+            <View style={styles.aboutTitleContainer}>
+              <Image source={require('../../assets/icons/heart.png')} style={styles.aboutIconImage} resizeMode="contain" />
+              <Text style={styles.aboutTitle}>Sugarbum</Text>
+            </View>
             <Text style={[theme.textStyles.bodySmall, styles.aboutVersion]}>
               Version 1.0.0
             </Text>
@@ -426,8 +429,10 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.lightGray,
     ...theme.shadows.level1
   },
-  editAvatarIcon: {
-    fontSize: 18
+  editAvatarIconImage: {
+    width: 20,
+    height: 20,
+    tintColor: theme.colors.deepTeal,
   },
   userName: {
     color: theme.colors.deepNavy,
@@ -449,9 +454,11 @@ const styles = StyleSheet.create({
     borderColor: theme.colors.lightGray,
     ...theme.shadows.level1,
   },
-  settingIcon: {
-    fontSize: 28,
+  settingIconImage: {
+    width: 28,
+    height: 28,
     marginRight: theme.spacing.md,
+    tintColor: theme.colors.deepNavy, // Apply tint color for consistency
   },
   settingInfo: {
     flex: 1,

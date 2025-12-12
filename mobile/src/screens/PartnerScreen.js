@@ -12,6 +12,7 @@ import {
   SafeAreaView,
   StatusBar,
   Platform,
+  Image,
 } from 'react-native';
 import api from '../config/api';
 import { BlobCard, GentleButton, WavePattern, AnimatedBlob, PatternBackground } from '../components';
@@ -191,7 +192,7 @@ export default function PartnerScreen({ navigation }) {
         {partner ? (
           <View style={styles.section}>
             <BlobCard style={styles.partnerCard}>
-              <Text style={styles.partnerIcon}>💑</Text>
+              <Image source={require('../../assets/icons/couple.png')} style={styles.partnerIcon} resizeMode="contain" />
               <Text style={[theme.textStyles.h2, styles.partnerName]}>{partner.name}</Text>
               <Text style={[theme.textStyles.body, styles.partnerEmail]}>{partner.email}</Text>
             </BlobCard>
@@ -205,7 +206,7 @@ export default function PartnerScreen({ navigation }) {
         ) : (
           <View style={styles.section}>
             <BlobCard style={styles.connectCard}>
-              <Text style={styles.connectEmoji}>💕</Text>
+              <Image source={require('../../assets/icons/heart.png')} style={styles.connectEmoji} resizeMode="contain" />
               <Text style={[theme.textStyles.h3, styles.connectTitle]}>
                 Connect with Your Sugarbum
               </Text>
@@ -316,7 +317,8 @@ const styles = StyleSheet.create({
     marginBottom: theme.spacing.lg,
   },
   partnerIcon: {
-    fontSize: 64,
+    width: 64, // Adjust size as needed for the image
+    height: 64, // Adjust size as needed for the image
     marginBottom: theme.spacing.lg,
   },
   partnerName: {
@@ -345,7 +347,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   connectEmoji: {
-    fontSize: 64,
+    width: 64, // Adjust size as needed for the image
+    height: 64, // Adjust size as needed for the image
     marginBottom: theme.spacing.lg,
   },
   connectTitle: {

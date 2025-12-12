@@ -1,5 +1,5 @@
 import React, { memo } from 'react';
-import { View, Text, StyleSheet } from 'react-native';
+import { View, Text, StyleSheet, Image } from 'react-native';
 import { BlobCard } from './BlobCard';
 import { StatusAvatar } from './StatusAvatar';
 import theme from '../theme';
@@ -38,7 +38,7 @@ export const StatusCard = memo(({ partner, signals, isOnline, lastSeen }) => {
                 {/* Location */}
                 {signals?.location ? (
                     <View style={styles.statusItem}>
-                        <Text style={styles.statusEmoji}>📍</Text>
+                        <Image source={require('../../assets/icons/pin.png')} style={styles.statusIcon} resizeMode="contain" />
                         <Text style={[theme.textStyles.body, styles.statusText]}>
                             {signals.location.place_name || 'Unknown location'}
                         </Text>
@@ -48,7 +48,7 @@ export const StatusCard = memo(({ partner, signals, isOnline, lastSeen }) => {
                 {/* Music */}
                 {signals?.music?.track_name ? (
                     <View style={styles.statusItem}>
-                        <Text style={styles.statusEmoji}>🎵</Text>
+                        <Image source={require('../../assets/icons/music.png')} style={styles.statusIcon} resizeMode="contain" />
                         <Text style={[theme.textStyles.body, styles.statusText]}>
                             {signals.music.track_name}
                         </Text>
@@ -58,7 +58,7 @@ export const StatusCard = memo(({ partner, signals, isOnline, lastSeen }) => {
                 {/* Weather */}
                 {signals?.location?.weather_temp ? (
                     <View style={styles.statusItem}>
-                        <Text style={styles.statusEmoji}>☀️</Text>
+                        <Image source={require('../../assets/icons/sun.png')} style={styles.statusIcon} resizeMode="contain" />
                         <Text style={[theme.textStyles.body, styles.statusText]}>
                             {Math.round(signals.location.weather_temp)}°C, {signals.location.weather_condition}
                         </Text>
@@ -68,16 +68,12 @@ export const StatusCard = memo(({ partner, signals, isOnline, lastSeen }) => {
                 {/* Activity */}
                 {signals?.activity?.total_steps ? (
                     <View style={styles.statusItem}>
-                        <Text style={styles.statusEmoji}>🏃</Text>
+                        <Image source={require('../../assets/icons/run.png')} style={styles.statusIcon} resizeMode="contain" />
                         <Text style={[theme.textStyles.body, styles.statusText]}>
                             {signals.activity.total_steps.toLocaleString()} steps today
                         </Text>
                     </View>
                 ) : null}
-
-                {/* <Text style={[theme.textStyles.caption, styles.lastSeen]}>
-                    Last updated just now
-                </Text> */}
             </View>
         </BlobCard>
     );
@@ -123,8 +119,10 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         gap: theme.spacing.sm,
     },
-    statusEmoji: {
-        fontSize: 20,
+    statusIcon: {
+        width: 24,
+        height: 24,
+        tintColor: theme.colors.deepNavy,
     },
     statusText: {
         color: theme.colors.charcoal,

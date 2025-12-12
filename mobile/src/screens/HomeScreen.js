@@ -10,6 +10,7 @@ import {
   StatusBar,
   PanResponder,
   TouchableOpacity,
+  Image,
 } from 'react-native';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
@@ -266,7 +267,7 @@ export default function HomeScreen({ navigation }) {
           contentContainerStyle={styles.emptyContainer}
           refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
         >
-          <Text style={styles.emptyIcon}>💑</Text>
+          <Image source={require('../../assets/icons/couple.png')} style={styles.emptyIcon} resizeMode="contain" />
           <Text style={[theme.textStyles.h2, styles.emptyTitle]}>No Partner Yet</Text>
           <Text style={[theme.textStyles.body, styles.emptyText]}>
             Connect with your sugarbum to start sharing your daily moments
@@ -320,13 +321,13 @@ export default function HomeScreen({ navigation }) {
               </Text>
             </View>
             <TouchableOpacity onPress={() => navigation.navigate('Capsule')} style={{ padding: 8 }}>
-              <Text style={{ fontSize: 28 }}>💊</Text>
+              <Image source={require('../../assets/icons/capsule.png')} style={styles.headerIcon} resizeMode="contain" />
             </TouchableOpacity>
             <TouchableOpacity
               onPress={() => setIsTouchMode(!isTouchMode)}
               style={{ padding: 8, backgroundColor: isTouchMode ? theme.colors.primary + '20' : 'transparent', borderRadius: 20 }}
             >
-              <Text style={{ fontSize: 28 }}>👆</Text>
+              <Image source={require('../../assets/icons/touch.png')} style={styles.headerIcon} resizeMode="contain" />
             </TouchableOpacity>
           </View>
         </View>
@@ -334,7 +335,8 @@ export default function HomeScreen({ navigation }) {
         {/* Error Banner */}
         {error && (
           <View style={styles.errorBanner}>
-            <Text style={styles.errorText}>⚠️ {error}</Text>
+            <Image source={require('../../assets/icons/warning.png')} style={styles.errorIcon} resizeMode="contain" />
+            <Text style={styles.errorText}>{error}</Text>
             <TouchableOpacity onPress={loadData} style={styles.retryButton}>
               <Text style={styles.retryText}>Retry</Text>
             </TouchableOpacity>
@@ -426,6 +428,10 @@ const styles = StyleSheet.create({
   headerSubtitle: {
     color: theme.colors.mediumGray,
   },
+  headerIcon: {
+    width: 32,
+    height: 32,
+  },
   sectionTitle: {
     color: theme.colors.deepNavy,
     marginBottom: theme.spacing.lg,
@@ -468,7 +474,8 @@ const styles = StyleSheet.create({
     padding: 24,
   },
   emptyIcon: {
-    fontSize: 64,
+    width: 100,
+    height: 100,
     marginBottom: 16,
   },
   emptyTitle: {
@@ -491,6 +498,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
+  },
+  errorIcon: {
+    width: 20,
+    height: 20,
+    marginRight: 8,
+    tintColor: '#991B1B',
   },
   errorText: {
     color: '#991B1B',

@@ -18,10 +18,12 @@ export const QuickActions = memo(({ partnerName, onShareLocation, isSharing }) =
 
                 <View style={styles.actionButton}>
                     <GentleButton
-                        title={isSharing ? "Sending..." : "📍 Share Location"}
+                        title={isSharing ? "Sending..." : "Share Location"}
+                        icon={isSharing ? null : require('../../assets/icons/pin.png')}
                         onPress={onShareLocation}
                         variant="secondary"
                         size="medium"
+                        disabled={isSharing}
                     />
                 </View>
             </View>
@@ -36,11 +38,12 @@ const styles = StyleSheet.create({
     sectionTitle: {
         color: theme.colors.deepNavy,
         marginBottom: theme.spacing.lg,
+        marginLeft: theme.spacing.xs,
     },
     actionButtons: {
+        flexDirection: 'row',
         gap: theme.spacing.md,
     },
     actionButton: {
-        width: '100%',
     },
 });
