@@ -15,7 +15,7 @@ import {
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
-import { WavePattern, GentleButton, AnimatedBlob, PatternBackground } from '../components';
+import { WavePattern, GentleButton, BubbleAnimation, PatternBackground } from '../components';
 import theme from '../theme';
 
 export default function LoginScreen({ navigation }) {
@@ -61,11 +61,11 @@ export default function LoginScreen({ navigation }) {
       <PatternBackground pattern="zigzag" color={theme.colors.lavender} opacity={0.04} size="medium" />
 
       {/* Floating blobs for depth */}
-      <AnimatedBlob color={theme.colors.teal} size={250} opacity={0.15} shape="shape1" duration={28000} style={{ top: '-10%', right: '-20%' }} />
-      <AnimatedBlob color={theme.colors.lavender} size={200} opacity={0.18} shape="shape2" duration={32000} style={{ bottom: '-8%', left: '-15%' }} />
-      <AnimatedBlob color={theme.colors.slate} size={180} opacity={0.12} shape="shape3" duration={25000} style={{ top: '40%', left: '-12%' }} />
-      <AnimatedBlob color={theme.colors.peach} size={160} opacity={0.14} shape="shape4" duration={30000} style={{ bottom: '30%', right: '-10%' }} />
-      <AnimatedBlob color={theme.colors.mossGreen} size={140} opacity={0.16} shape="shape5" duration={26000} style={{ top: '20%', right: '85%' }} />
+      <BubbleAnimation color={theme.colors.teal} size={250} opacity={0.15} duration={28000} style={{ top: '-10%', right: '-20%' }} />
+      <BubbleAnimation color={theme.colors.lavender} size={200} opacity={0.18} duration={32000} style={{ bottom: '-8%', left: '-15%' }} />
+      <BubbleAnimation color={theme.colors.slate} size={180} opacity={0.12} duration={25000} style={{ top: '40%', left: '-12%' }} />
+      <BubbleAnimation color={theme.colors.peach} size={160} opacity={0.14} duration={30000} style={{ bottom: '30%', right: '-10%' }} />
+      <BubbleAnimation color={theme.colors.mossGreen} size={140} opacity={0.16} duration={26000} style={{ top: '20%', right: '85%' }} />
 
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
