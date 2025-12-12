@@ -1,6 +1,7 @@
 const express = require('express');
 const pool = require('../config/database');
 const { authenticate } = require('../middleware/auth');
+const emailService = require('../services/email');
 
 const router = express.Router();
 router.use(authenticate);
@@ -22,8 +23,18 @@ router.post('/request', async (req, res) => {
       [partnerEmail.toLowerCase()]
     );
 
+    // If user doesn't exist, send invitation email
     if (partnerResult.rows.length === 0) {
-      return res.status(404).json({ error: 'User not found with that email' });
+      try {
+        await emailService.sendPartnerInvite(partnerEmail, req.user.name);
+        return res.status(200).json({
+          message: 'Invitation sent! User will be notified to join Sugarbum.',
+          invited: true
+        });
+      } catch (emailError) {
+        console.error('Email send error:', emailError);
+        return res.status(500).json({ error: 'Failed to send invitation email' });
+      }
     }
 
     const partner = partnerResult.rows[0];

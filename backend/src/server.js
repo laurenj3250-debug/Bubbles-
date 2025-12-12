@@ -58,18 +58,16 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 
-// Health check
-app.get('/health', async (req, res) => {
+// Health check endpoint
+app.get('/api/health', async (req, res) => {
   try {
-    // Use a database-agnostic query (1=1 works in both SQLite and PostgreSQL)
     await pool.query('SELECT 1');
     res.json({
       status: 'healthy',
-      timestamp: new Date().toISOString(),
-      database: 'connected'
+      timestamp: new Date().toISOString()
     });
   } catch (error) {
-    res.status(503).json({
+    res.status(500).json({
       status: 'unhealthy',
       error: error.message
     });
@@ -114,8 +112,10 @@ app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });
 });
 
-// Start server
-app.listen(PORT, '0.0.0.0', () => {
+// Start server with admin setup
+const setupAdmin = require('./config/setup-admin');
+
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`
 💕 Sugarbum API Server Running
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -124,6 +124,13 @@ Environment: ${process.env.NODE_ENV || 'development'}
 Time: ${new Date().toISOString()}
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━
 `);
+
+  // Run admin setup
+  try {
+    await setupAdmin();
+  } catch (error) {
+    console.error('⚠️  Admin setup failed:', error.message);
+  }
 });
 
 // Graceful shutdown
