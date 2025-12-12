@@ -1,6 +1,8 @@
 // Sugarbum Design System - Spacing
 // Based on 4px grid
 
+import { Platform } from 'react-native';
+
 export const spacing = {
   xs: 4,
   sm: 8,
@@ -20,16 +22,34 @@ export const borderRadius = {
 };
 
 export const shadows = {
-  level1: {
-    boxShadow: '0px 2px 8px rgba(61, 59, 94, 0.08)',
-    elevation: 2,
-  },
-  level2: {
-    boxShadow: '0px 4px 16px rgba(61, 59, 94, 0.12)',
-    elevation: 4,
-  },
-  level3: {
-    boxShadow: '0px 8px 32px rgba(61, 59, 94, 0.16)',
-    elevation: 8,
-  },
+  level1: Platform.select({
+    web: { boxShadow: '0px 2px 8px rgba(61, 59, 94, 0.08)' },
+    default: {
+      shadowColor: '#3D3B5E',
+      shadowOffset: { width: 0, height: 2 },
+      shadowOpacity: 0.08,
+      shadowRadius: 8,
+      elevation: 2,
+    },
+  }),
+  level2: Platform.select({
+    web: { boxShadow: '0px 4px 16px rgba(61, 59, 94, 0.12)' },
+    default: {
+      shadowColor: '#3D3B5E',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.12,
+      shadowRadius: 16,
+      elevation: 4,
+    },
+  }),
+  level3: Platform.select({
+    web: { boxShadow: '0px 8px 32px rgba(61, 59, 94, 0.16)' },
+    default: {
+      shadowColor: '#3D3B5E',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.16,
+      shadowRadius: 32,
+      elevation: 8,
+    },
+  }),
 };
