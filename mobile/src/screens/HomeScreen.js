@@ -32,6 +32,7 @@ export default function HomeScreen({ navigation }) {
   // Core state
   const [user, setUser] = useState(null);
   const [partner, setPartner] = useState(null);
+  const [pendingRequest, setPendingRequest] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
@@ -70,7 +71,7 @@ export default function HomeScreen({ navigation }) {
         }
       }
 
-      await Promise.all([fetchPartner(), fetchSignals()]);
+      await Promise.all([fetchPartner(), fetchSentRequests(), fetchSignals()]);
       setError(null);
     } catch (error) {
       console.error('Load data error:', error);
@@ -89,6 +90,34 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
+  const fetchSentRequests = async () => {
+    try {
+      const response = await api.get('/partners/sent-requests');
+      if (response.data.requests && response.data.requests.length > 0) {
+        setPendingRequest(response.data.requests[0]); // Get first pending request
+      } else {
+        setPendingRequest(null);
+      }
+    } catch (error) {
+      console.error('Fetch sent requests error:', error);
+    }
+  };
+
+  const cancelPendingRequest = async () => {
+    if (!pendingRequest) return;
+
+    try {
+      await api.delete(`/partners/${pendingRequest.id}`);
+      Alert.alert('Success', 'Partner request cancelled');
+      setPendingRequest(null);
+      // Refresh data
+      await loadData();
+    } catch (error) {
+      console.error('Cancel request error:', error);
+      Alert.alert('Error', 'Failed to cancel request');
+    }
+  };
+
   const fetchSignals = async () => {
     try {
       const response = await api.get('/signals/partner/all');
@@ -103,7 +132,7 @@ export default function HomeScreen({ navigation }) {
 
   const onRefresh = async () => {
     setRefreshing(true);
-    await Promise.all([fetchPartner(), fetchSignals()]);
+    await Promise.all([fetchPartner(), fetchSentRequests(), fetchSignals()]);
     setRefreshing(false);
   };
 
@@ -223,6 +252,8 @@ export default function HomeScreen({ navigation }) {
         refreshing={refreshing}
         onRefresh={onRefresh}
         onFindPartner={() => navigation.navigate('Partner')}
+        pendingRequest={pendingRequest}
+        onCancelRequest={cancelPendingRequest}
       />
     );
   }

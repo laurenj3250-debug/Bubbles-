@@ -42,10 +42,39 @@ export default function LoginScreen({ navigation }) {
       await signIn(response.data.token, response.data.user);
     } catch (error) {
       console.error('Login error:', error);
-      Alert.alert(
-        'Login Failed',
-        error.response?.data?.error || 'Unable to login. Please try again.'
-      );
+
+      // Provide specific error messages based on error type
+      let errorTitle = 'Login Failed';
+      let errorMessage = 'Unable to login. Please try again.';
+
+      if (error.response) {
+        // Server responded with error
+        const status = error.response.status;
+        const serverError = error.response.data?.error;
+
+        if (status === 401) {
+          // Unauthorized - wrong password or user not found
+          if (serverError?.toLowerCase().includes('password')) {
+            errorMessage = 'Incorrect password. Please try again.';
+          } else if (serverError?.toLowerCase().includes('user') || serverError?.toLowerCase().includes('not found')) {
+            errorMessage = 'No account found with this email address.';
+          } else {
+            errorMessage = 'Invalid email or password.';
+          }
+        } else if (status === 400) {
+          errorMessage = serverError || 'Please check your email and password.';
+        } else if (status >= 500) {
+          errorMessage = 'Server error. Please try again later.';
+        } else {
+          errorMessage = serverError || errorMessage;
+        }
+      } else if (error.request) {
+        // Network error - no response received
+        errorTitle = 'Connection Error';
+        errorMessage = 'Cannot connect to server. Please check your internet connection.';
+      }
+
+      Alert.alert(errorTitle, errorMessage);
     } finally {
       setIsLoading(false);
     }

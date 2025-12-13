@@ -99,6 +99,25 @@ router.get('/requests', async (req, res) => {
   }
 });
 
+// Get sent (outgoing) partner requests
+router.get('/sent-requests', async (req, res) => {
+  try {
+    const result = await pool.query(
+      `SELECT p.id, p.status, p.created_at,
+              u.id as partner_id, u.name as partner_name, u.email as partner_email, u.avatar_url
+       FROM partnerships p
+       JOIN users u ON u.id = p.user2_id
+       WHERE p.user1_id = $1 AND p.status = 'pending'`,
+      [req.user.id]
+    );
+
+    res.json({ requests: result.rows });
+  } catch (error) {
+    console.error('Get sent requests error:', error);
+    res.status(500).json({ error: 'Failed to fetch sent requests' });
+  }
+});
+
 // Accept/reject partner request
 router.post('/:partnershipId/respond', async (req, res) => {
   const client = await pool.connect();
@@ -139,6 +158,28 @@ router.post('/:partnershipId/respond', async (req, res) => {
     res.status(500).json({ error: 'Failed to respond to request' });
   } finally {
     client.release();
+  }
+});
+
+// Delete pending partnership request (for canceling sent requests)
+router.delete('/:partnershipId', async (req, res) => {
+  try {
+    const { partnershipId } = req.params;
+
+    // Verify this user is user1 (sender) and partnership is pending
+    const result = await pool.query(
+      'DELETE FROM partnerships WHERE id = $1 AND user1_id = $2 AND status = $3 RETURNING id',
+      [partnershipId, req.user.id, 'pending']
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ error: 'Pending partnership request not found' });
+    }
+
+    res.json({ message: 'Partnership request cancelled' });
+  } catch (error) {
+    console.error('Delete partnership error:', error);
+    res.status(500).json({ error: 'Failed to cancel partnership request' });
   }
 });
 

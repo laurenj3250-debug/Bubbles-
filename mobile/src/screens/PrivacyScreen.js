@@ -10,10 +10,12 @@ import {
   ActivityIndicator,
   SafeAreaView,
   StatusBar,
+  Platform,
 } from 'react-native';
 import api from '../config/api';
 import { BlobCard, WavePattern, AnimatedBlob, PatternBackground } from '../components';
 import theme from '../theme';
+import { isFeatureAvailable, PlatformFeatures } from '../utils/PlatformGuards';
 
 import {
   startBackgroundLocation,
@@ -177,24 +179,26 @@ export default function PrivacyScreen({ navigation }) {
             Control what information you share with your partner
           </Text>
 
-          {/* Background Location Toggle */}
-          <View style={styles.settingRow}>
-            <View style={styles.settingInfo}>
-              <Text style={styles.settingIcon}>🛰️</Text>
-              <View style={styles.settingText}>
-                <Text style={[theme.textStyles.body, styles.settingTitle]}>Background Updates</Text>
-                <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
-                  Update location even when app is closed ('Always' permission required)
-                </Text>
+          {/* Background Location Toggle - Native Only */}
+          {isFeatureAvailable(PlatformFeatures.BACKGROUND_TASKS) && (
+            <View style={styles.settingRow}>
+              <View style={styles.settingInfo}>
+                <Text style={styles.settingIcon}>🛰️</Text>
+                <View style={styles.settingText}>
+                  <Text style={[theme.textStyles.body, styles.settingTitle]}>Background Updates</Text>
+                  <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
+                    Update location even when app is closed ('Always' permission required)
+                  </Text>
+                </View>
               </View>
+              <Switch
+                value={backgroundLocationEnabled}
+                onValueChange={toggleBackgroundLocation}
+                trackColor={{ false: theme.colors.lightGray, true: theme.colors.sageGreen }}
+                thumbColor={backgroundLocationEnabled ? theme.colors.deepNavy : theme.colors.offWhite}
+              />
             </View>
-            <Switch
-              value={backgroundLocationEnabled}
-              onValueChange={toggleBackgroundLocation}
-              trackColor={{ false: theme.colors.lightGray, true: theme.colors.sageGreen }}
-              thumbColor={backgroundLocationEnabled ? theme.colors.deepNavy : theme.colors.offWhite}
-            />
-          </View>
+          )}
 
           <View style={styles.settingRow}>
             <View style={styles.settingInfo}>
@@ -220,12 +224,15 @@ export default function PrivacyScreen({ navigation }) {
               <View style={styles.settingText}>
                 <Text style={[theme.textStyles.body, styles.settingTitle]}>Activity & Fitness</Text>
                 <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
-                  Share steps, workouts, and health data
+                  {Platform.OS === 'web'
+                    ? 'Native app only - Not available on web'
+                    : 'Share steps, workouts, and health data'}
                 </Text>
               </View>
             </View>
             <Switch
-              value={settings.share_activity}
+              disabled={!isFeatureAvailable(PlatformFeatures.HEALTH)}
+              value={isFeatureAvailable(PlatformFeatures.HEALTH) && settings.share_activity}
               onValueChange={(value) => updateSetting('share_activity', value)}
               trackColor={{ false: theme.colors.lightGray, true: theme.colors.primaryLight }}
               thumbColor={settings.share_activity ? theme.colors.primary : theme.colors.offWhite}
@@ -256,12 +263,15 @@ export default function PrivacyScreen({ navigation }) {
               <View style={styles.settingText}>
                 <Text style={[theme.textStyles.body, styles.settingTitle]}>Calendar</Text>
                 <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
-                  Share your calendar status and events
+                  {Platform.OS === 'web'
+                    ? 'Native app only - Not available on web'
+                    : 'Share your calendar status and events'}
                 </Text>
               </View>
             </View>
             <Switch
-              value={settings.share_calendar}
+              disabled={!isFeatureAvailable(PlatformFeatures.CALENDAR)}
+              value={isFeatureAvailable(PlatformFeatures.CALENDAR) && settings.share_calendar}
               onValueChange={(value) => updateSetting('share_calendar', value)}
               trackColor={{ false: theme.colors.lightGray, true: theme.colors.primaryLight }}
               thumbColor={settings.share_calendar ? theme.colors.primary : theme.colors.offWhite}
