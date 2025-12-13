@@ -15,21 +15,12 @@ const getApiUrl = () => {
     return '/api';
   }
 
-  // Mobile native: Use local backend
-  // Smart detection for Physical Device or Emulator via Expo Go
-  // This gets the IP of the computer running Metro bundler
-  const debuggerHost = Constants.expoConfig?.hostUri || Constants.manifest?.debuggerHost;
-  const localhost = debuggerHost?.split(':')[0] || 'localhost';
+  // Mobile native: Use Railway backend for shared testing
+  // This ensures both phones connect to the same database
+  return 'https://sugarbum-backend-production.up.railway.app/api';
+};
 
-  if (debuggerHost) {
-    return `http://${localhost}:3000/api`;
-  }
-
-  // Fallback for independent builds or when debuggerHost is missing
-  const Platform = require('react-native').Platform;
-  const fallbackHost = Platform.OS === 'android' ? '10.0.2.2' : 'localhost';
-
-  return `http://${fallbackHost}:3000/api`;
+return `http://${fallbackHost}:3000/api`;
 };
 
 const API_URL = getApiUrl();
