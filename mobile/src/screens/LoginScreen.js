@@ -8,14 +8,12 @@ import {
   KeyboardAvoidingView,
   Platform,
   Alert,
-  ActivityIndicator,
   SafeAreaView,
   StatusBar,
-  Image,
 } from 'react-native';
 import { AuthContext } from '../context/AuthContext';
 import api from '../config/api';
-import { WavePattern, GentleButton, BubbleAnimation, AnimatedBlob, PatternBackground } from '../components';
+import { WavePattern, GentleButton, BubbleAnimation, AnimatedBlob, PatternBackground, SugarbumLogo } from '../components';
 import theme from '../theme';
 
 export default function LoginScreen({ navigation }) {
@@ -103,16 +101,12 @@ export default function LoginScreen({ navigation }) {
         <View style={styles.content}>
           {/* Sugarbum branding */}
           <View style={styles.brandContainer}>
-            <View style={styles.logoCircle}>
-              <Image
-                source={require('../../assets/icon.png')}
-                style={styles.logoImage}
-                resizeMode="cover"
-              />
+            <View style={styles.logoContainer}>
+              <SugarbumLogo size={180} showSignals={true} />
             </View>
             <Text style={[theme.textStyles.h1, styles.title]}>Sugarbum</Text>
             <Text style={[theme.textStyles.body, styles.subtitle]}>
-              Stay connected with your sugarbum
+              Be together, apart
             </Text>
           </View>
 
@@ -180,20 +174,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: theme.spacing['3xl'],
   },
-  logoCircle: {
-    width: 120,
-    height: 120,
-    borderRadius: 30, // Rounded square-ish
+  logoContainer: {
     marginBottom: theme.spacing.xl,
-    ...theme.shadows.level2,
-    overflow: 'hidden',
-  },
-  logoImage: {
-    width: '100%',
-    height: '100%',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   title: {
-    color: theme.colors.deepNavy,
+    color: theme.colors.navyText,
     textAlign: 'center',
     marginBottom: theme.spacing.xs,
   },

@@ -6,6 +6,9 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import { StatusBar } from 'expo-status-bar';
 import { Platform, Text, View } from 'react-native';
 
+// Components
+import { HomeIcon, PartnerIcon, SettingsIcon, SugarbumIcon } from './src/components';
+
 // Screens
 import LoginScreen from './src/screens/LoginScreen';
 import RegisterScreen from './src/screens/RegisterScreen';
@@ -39,6 +42,13 @@ function AppTabs() {
         tabBarActiveTintColor: '#8B5CF6',
         tabBarInactiveTintColor: '#9CA3AF',
         headerShown: false,
+        tabBarStyle: {
+          backgroundColor: '#FFFFFF',
+          borderTopColor: '#E5E5E5',
+          paddingTop: 5,
+          paddingBottom: Platform.OS === 'ios' ? 20 : 10,
+          height: Platform.OS === 'ios' ? 85 : 65,
+        },
       }}
     >
       <Tab.Screen
@@ -46,7 +56,7 @@ function AppTabs() {
         component={HomeScreen}
         options={{
           tabBarLabel: 'Home',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>🏠</Text>,
+          tabBarIcon: ({ color, focused }) => <HomeIcon size={24} color={color} focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -54,7 +64,7 @@ function AppTabs() {
         component={PartnerScreen}
         options={{
           tabBarLabel: 'Partner',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>💑</Text>,
+          tabBarIcon: ({ color, focused }) => <PartnerIcon size={24} color={color} focused={focused} />,
         }}
       />
       <Tab.Screen
@@ -62,7 +72,7 @@ function AppTabs() {
         component={SettingsScreen}
         options={{
           tabBarLabel: 'Settings',
-          tabBarIcon: ({ color }) => <Text style={{ fontSize: 24, color }}>⚙️</Text>,
+          tabBarIcon: ({ color, focused }) => <SettingsIcon size={24} color={color} focused={focused} />,
         }}
       />
     </Tab.Navigator>
@@ -131,8 +141,9 @@ export default function App() {
   if (isLoading) {
     // Return a simple loading screen instead of null to prevent white flash
     return (
-      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <Text>Loading Bubbles...</Text>
+      <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#FAF8F5' }}>
+        <SugarbumIcon size={64} />
+        <Text style={{ marginTop: 16, color: '#3D3B5E', fontSize: 18 }}>Loading Sugarbum...</Text>
       </View>
     );
   }

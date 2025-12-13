@@ -20,9 +20,6 @@ const getApiUrl = () => {
   return 'https://sugarbum-backend-production.up.railway.app/api';
 };
 
-return `http://${fallbackHost}:3000/api`;
-};
-
 const API_URL = getApiUrl();
 
 // Get base URL for admin panel (without /api suffix)

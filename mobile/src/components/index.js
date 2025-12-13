@@ -9,3 +9,5 @@ export { AnimatedBlob } from './AnimatedBlob';
 export { BubbleAnimation } from './BubbleAnimation';
 export { StatusCard } from './StatusCard';
 export { QuickActions } from './QuickActions';
+export { SugarbumLogo, SugarbumIcon } from './SugarbumLogo';
+export { HomeIcon, PartnerIcon, SettingsIcon, CapsuleIcon, HeartIcon, WifiSignalIcon } from './TabBarIcons';

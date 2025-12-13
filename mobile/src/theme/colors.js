@@ -1,16 +1,24 @@
 // Sugarbum Design System - Colors
 // "Sophisticated Organic Modern" aesthetic - balanced, not overly feminine
+// Logo: "Be together, apart" - Two bums connected with heart and wifi signals
 
 export const colors = {
   // Primary Colors
   primary: '#8B5CF6',        // Main brand purple (Vibrant)
   primaryLight: '#C4B5FD',   // Light purple for backgrounds/toggles
-  dustyRose: '#D4A5A5',      // Muted rose, more sophisticated
-  deepNavy: '#3D3B5E',       // Text, important CTAs, grounding
-  sageGreen: '#5C8D7E',      // Active states, "online" indicators
+  dustyRose: '#D4A5A5',      // Muted rose, more sophisticated (Logo left bum)
+  deepNavy: '#191938',       // Deep navy background (Logo background)
+  navyText: '#3D3B5E',       // Text, important CTAs, grounding
+  sageGreen: '#8FAF8F',      // Sage green (Logo right bum)
   cream: '#FAF8F5',          // Warm neutral background
   background: '#F9FAFB',     // App background (Light Gray)
   surface: '#FFFFFF',        // Cards (White)
+
+  // Logo-specific colors
+  logoPink: '#D4A5A5',       // Left bum pink
+  logoGreen: '#8FAF8F',      // Right bum green
+  logoHeart: '#E55050',      // Heart red
+  logoNavy: '#191938',       // Background navy
 
   // Accent Colors - More variety
   teal: '#4A9B8E',           // Location, movement
