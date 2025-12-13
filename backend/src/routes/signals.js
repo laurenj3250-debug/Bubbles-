@@ -82,20 +82,55 @@ async function checkPrivacy(userId, category) {
   return settings[category];
 }
 
-// Helper: Get weather data
+// Helper: Get weather data from Open-Meteo (free, no API key required)
 async function getWeather(lat, lon) {
   try {
+    // Open-Meteo API - completely free, no API key needed
     const response = await axios.get(
-      `https://api.openweathermap.org/data/2.5/weather?lat=${lat}&lon=${lon}&units=metric&appid=${process.env.WEATHER_API_KEY}`
+      `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&temperature_unit=celsius`
     );
 
+    const current = response.data.current;
+
+    // Map WMO Weather codes to conditions
+    // https://open-meteo.com/en/docs
+    const weatherCode = current.weather_code;
+    let condition = 'Clear';
+    let icon = '01d'; // Default sunny
+
+    if (weatherCode === 0) {
+      condition = 'Clear';
+      icon = '01d';
+    } else if (weatherCode >= 1 && weatherCode <= 3) {
+      condition = 'Clouds';
+      icon = weatherCode === 1 ? '02d' : weatherCode === 2 ? '03d' : '04d';
+    } else if (weatherCode >= 45 && weatherCode <= 48) {
+      condition = 'Fog';
+      icon = '50d';
+    } else if (weatherCode >= 51 && weatherCode <= 67) {
+      condition = 'Rain';
+      icon = weatherCode >= 61 ? '10d' : '09d';
+    } else if (weatherCode >= 71 && weatherCode <= 77) {
+      condition = 'Snow';
+      icon = '13d';
+    } else if (weatherCode >= 80 && weatherCode <= 82) {
+      condition = 'Rain';
+      icon = '09d';
+    } else if (weatherCode >= 85 && weatherCode <= 86) {
+      condition = 'Snow';
+      icon = '13d';
+    } else if (weatherCode >= 95 && weatherCode <= 99) {
+      condition = 'Thunderstorm';
+      icon = '11d';
+    }
+
     return {
-      temp: response.data.main.temp,
-      condition: response.data.weather[0].main,
-      icon: response.data.weather[0].icon
+      temp: current.temperature_2m,
+      condition,
+      icon
     };
   } catch (error) {
-    console.error('Weather API error:', error.message);
+    console.error('Open-Meteo API error:', error.message);
     return null;
   }
 }
@@ -137,10 +172,8 @@ router.post('/location', async (req, res) => {
       return res.json({ message: 'Location sharing is disabled' });
     }
 
-    // Get weather
-    const weather = process.env.WEATHER_API_KEY
-      ? await getWeather(latitude, longitude)
-      : null;
+    // Get weather (Open-Meteo is free and always available)
+    const weather = await getWeather(latitude, longitude);
 
     // Store location in PostgreSQL (for history)
     const result = await pool.query(
@@ -447,7 +480,7 @@ router.post('/miss-you', async (req, res) => {
        VALUES ($1, false, 'miss_you_sent')
        ON CONFLICT DO NOTHING`,
       [req.user.id]
-    ).catch(() => {}); // Non-blocking
+    ).catch(() => { }); // Non-blocking
 
     // 3. Send Push Notification (High Priority) - This is the primary delivery mechanism
     const senderName = req.user.name || 'Your partner';
