@@ -194,6 +194,12 @@ When you send a partner request to someone who doesn't have an account yet:
 - **Alerts:** Platform-specific (window.alert on web, Alert.alert on native)
 - **Spotify:** Backend OAuth works on all platforms
 
+### GDPR Compliance (December 2025)
+- **Data Export (Article 20):** Download all your personal data as JSON
+- **Right to Erasure (Article 17):** Permanently delete account and all associated data
+- **Email Confirmation:** Account deletion requires email confirmation for security
+- **Admin Protection:** Immutable admin accounts cannot be deleted via API
+
 ## 🔧 Database Configuration
 
 The backend supports **two database options**:
@@ -262,6 +268,12 @@ Access the admin panel at **http://localhost:3000/admin.html**
 - `PUT /api/privacy` - Update settings
 - `POST /api/privacy/pause` - Pause sharing
 - `POST /api/privacy/resume` - Resume
+
+### Users & GDPR
+- `GET /api/users/:userId` - Get user profile
+- `PUT /api/users/me` - Update own profile
+- `GET /api/users/me/export` - Export all user data (GDPR Article 20)
+- `DELETE /api/users/me` - Delete account and all data (GDPR Article 17)
 
 ### Spotify
 - `GET /api/spotify/auth-url` - Get OAuth URL
@@ -368,9 +380,9 @@ See [Expo EAS Build docs](https://docs.expo.dev/build/introduction/) for details
 
 ### Verification Test Fails
 
-**Issue:** `verify-full-flow.js` returns errors  
-**Solution:** 
-1. Ensure server is running on port 8080
+**Issue:** `verify-full-flow.js` returns errors
+**Solution:**
+1. Ensure server is running on port 3000 (or set `API_URL` env var)
 2. Check database migrations completed: `npm run migrate`
 3. Review server logs for specific errors
 
