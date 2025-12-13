@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
   ScrollView,
   RefreshControl,
@@ -9,31 +8,52 @@ import {
   SafeAreaView,
   StatusBar,
   PanResponder,
-  TouchableOpacity,
-  Image,
+  Text,
   Platform,
 } from 'react-native';
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../config/api';
-import { database } from '../config/firebase';
-import { ref, onValue, off, set } from 'firebase/database';
-import { GentleButton, WavePattern, AnimatedBlob, BubbleAnimation, PatternBackground, StatusCard, QuickActions } from '../components';
+import { StatusCard, QuickActions } from '../components';
 import { LoveBombOverlay } from '../components/LoveBombOverlay';
 import { TouchOverlay } from '../components/TouchOverlay';
+import {
+  HomeHeader,
+  TodaysMoments,
+  ErrorBanner,
+  HomeBackgrounds,
+  LoadingState,
+  EmptyPartnerState,
+} from '../components/home';
+import { usePartnerStatus, useLoveBombListener, useDigitalTouch } from '../hooks';
 import theme from '../theme';
 
 export default function HomeScreen({ navigation }) {
+  // Core state
   const [user, setUser] = useState(null);
   const [partner, setPartner] = useState(null);
-  const [signals, setSignals] = useState(null);
   const [refreshing, setRefreshing] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
-  const [lastSeen, setLastSeen] = useState(null);
-  const [isOnline, setIsOnline] = useState(false);
   const [error, setError] = useState(null);
 
+  // Custom hooks for Firebase real-time features
+  const { signals, setSignals, lastSeen, isOnline } = usePartnerStatus(partner?.id);
+  const { showLoveBomb, setShowLoveBomb } = useLoveBombListener(user?.id, partner?.id);
+  const { isTouchMode, setIsTouchMode, myTouchPos, updateMyTouch } = useDigitalTouch(user?.id);
+
+  // Pan responder for digital touch
+  const panResponder = React.useRef(
+    PanResponder.create({
+      onStartShouldSetPanResponder: () => true,
+      onPanResponderGrant: (evt) => updateMyTouch(evt.nativeEvent.pageX, evt.nativeEvent.pageY),
+      onPanResponderMove: (evt) => updateMyTouch(evt.nativeEvent.pageX, evt.nativeEvent.pageY),
+      onPanResponderRelease: () => updateMyTouch(null, null),
+      onPanResponderTerminate: () => updateMyTouch(null, null),
+    })
+  ).current;
+
+  // Initial data load
   useEffect(() => {
     loadData();
   }, []);
@@ -60,112 +80,6 @@ export default function HomeScreen({ navigation }) {
     }
   };
 
-  // Firebase real-time listener for partner status
-  useEffect(() => {
-    if (!partner) return;
-
-    // Subscribe to partner's real-time status
-    const statusRef = ref(database, `users/${partner.id}/status`);
-
-    const unsubscribe = onValue(statusRef, (snapshot) => {
-      const realtimeStatus = snapshot.val();
-
-      if (realtimeStatus) {
-        // Update signals with real-time data
-        setSignals(prevSignals => ({
-          ...prevSignals,
-          location: realtimeStatus.location || prevSignals?.location,
-          activity: realtimeStatus.activity || prevSignals?.activity,
-          music: realtimeStatus.music || prevSignals?.music,
-          device: realtimeStatus.device || prevSignals?.device,
-        }));
-
-        // Determine last seen and online status
-        const mostRecentTimestamp = Math.max(
-          realtimeStatus.location?.timestamp || 0,
-          realtimeStatus.activity?.timestamp || 0,
-          realtimeStatus.music?.timestamp || 0,
-          realtimeStatus.device?.timestamp || 0
-        );
-
-        if (mostRecentTimestamp) {
-          setLastSeen(mostRecentTimestamp);
-          // Consider online if activity within last 5 minutes
-          const fiveMinutesAgo = Date.now() - (5 * 60 * 1000);
-          setIsOnline(mostRecentTimestamp > fiveMinutesAgo);
-        }
-      }
-    });
-
-    // Cleanup listener on unmount
-    return () => off(statusRef);
-  }, [partner]);
-
-  // Firebase listener for Love Bombs (Miss You)
-  const [showLoveBomb, setShowLoveBomb] = useState(false);
-  const lastBombTime = React.useRef(0);
-
-  useEffect(() => {
-    if (!partner || !user) return;
-    const inboxRef = ref(database, `users/${user.id}/inbox/miss_you`);
-
-    const unsubscribe = onValue(inboxRef, (snapshot) => {
-      const data = snapshot.val();
-      if (data && data.timestamp > lastBombTime.current) {
-        // Only show if it's a new signal (timestamp > last seen)
-        // And prevent showing it immediately on load if it's old (e.g. > 1 min ago)
-        const isRecent = Date.now() - data.timestamp < 60000;
-
-        if (isRecent) {
-          setShowLoveBomb(true);
-        }
-        lastBombTime.current = data.timestamp;
-      }
-    });
-
-    return () => off(inboxRef);
-  }, [user, partner]);
-
-  // Digital Touch Logic
-  const [isTouchMode, setIsTouchMode] = useState(false);
-  const [myTouchPos, setMyTouchPos] = useState(null);
-  const touchThrottle = React.useRef(0);
-
-  const updateMyTouch = (x, y) => {
-    setMyTouchPos(x ? { x, y } : null);
-
-    // Push to Firebase (Throttle 100ms)
-    if (!user) return;
-    const now = Date.now();
-    if (now - touchThrottle.current > 100 || !x) {
-      const refPath = `users/${user.id}/status/touch`;
-      if (x) {
-        set(ref(database, refPath), { x, y, timestamp: now });
-      } else {
-        set(ref(database, refPath), null);
-      }
-      touchThrottle.current = now;
-    }
-  };
-
-  const panResponder = React.useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderGrant: (evt) => updateMyTouch(evt.nativeEvent.pageX, evt.nativeEvent.pageY),
-      onPanResponderMove: (evt) => updateMyTouch(evt.nativeEvent.pageX, evt.nativeEvent.pageY),
-      onPanResponderRelease: () => updateMyTouch(null, null),
-      onPanResponderTerminate: () => updateMyTouch(null, null),
-    })
-  ).current;
-
-  useEffect(() => {
-    // If we turn off touch mode, clear our status
-    if (!isTouchMode && user) {
-      const refPath = `users/${user.id}/status/touch`;
-      set(ref(database, refPath), null);
-    }
-  }, [isTouchMode, user]);
-
   const fetchPartner = async () => {
     try {
       const response = await api.get('/partners/current');
@@ -182,7 +96,6 @@ export default function HomeScreen({ navigation }) {
     } catch (error) {
       console.error('Fetch signals error:', error);
       if (error.response?.status === 404) {
-        // No partner yet
         setSignals(null);
       }
     }
@@ -196,11 +109,7 @@ export default function HomeScreen({ navigation }) {
 
   const sendLocationSignal = async () => {
     try {
-      console.log('📍 Requesting location permission...');
-
-      // Check platform and use appropriate location API
       if (Platform.OS === 'web') {
-        // Use browser Geolocation API on web
         if (!navigator.geolocation) {
           console.warn('Geolocation not supported on this browser');
           return;
@@ -209,42 +118,35 @@ export default function HomeScreen({ navigation }) {
         navigator.geolocation.getCurrentPosition(
           async (position) => {
             const { latitude, longitude, accuracy } = position.coords;
-            console.log('📍 Web location obtained:', { latitude, longitude });
-
             await api.post('/signals/location', {
               latitude,
               longitude,
               accuracy: accuracy || 0
             });
-            console.log('✅ Location signal sent (web)');
+            console.log('Location signal sent (web)');
           },
           (error) => {
-            console.warn('Location permission denied or unavailable:', error.message);
+            console.warn('Location permission denied:', error.message);
           },
           { enableHighAccuracy: false, timeout: 5000, maximumAge: 60000 }
         );
       } else {
-        // Use expo-location on native
         const { status } = await Location.requestForegroundPermissionsAsync();
-
         if (status !== 'granted') {
           console.warn('Location permission denied');
           return;
         }
 
         const location = await Location.getCurrentPositionAsync({});
-        console.log('📍 Native location obtained:', location.coords);
-
         await api.post('/signals/location', {
           latitude: location.coords.latitude,
           longitude: location.coords.longitude,
           accuracy: location.coords.accuracy
         });
-        console.log('✅ Location signal sent (native)');
+        console.log('Location signal sent (native)');
       }
     } catch (error) {
       console.error('Location signal error:', error);
-      // Don't throw - fail gracefully
     }
   };
 
@@ -252,7 +154,6 @@ export default function HomeScreen({ navigation }) {
     try {
       setIsSharing(true);
 
-      // Request permission for native platforms
       if (Platform.OS !== 'web') {
         const { status } = await Location.requestForegroundPermissionsAsync();
         if (status !== 'granted') {
@@ -263,12 +164,9 @@ export default function HomeScreen({ navigation }) {
 
       let location;
       if (Platform.OS === 'web') {
-        // For web, we'll rely on the browser's geolocation API directly for the signal,
-        // but we still need to get it here for geocoding and alert.
-        // This might lead to a double prompt on some browsers, but ensures consistency.
         location = await new Promise((resolve, reject) => {
           if (!navigator.geolocation) {
-            reject(new Error('Geolocation not supported on this browser'));
+            reject(new Error('Geolocation not supported'));
             return;
           }
           navigator.geolocation.getCurrentPosition(
@@ -281,10 +179,8 @@ export default function HomeScreen({ navigation }) {
         location = await Location.getCurrentPositionAsync({});
       }
 
-      // Send the location signal (handled by sendLocationSignal for platform specifics)
       await sendLocationSignal();
 
-      // Get readable address (only if location data is available and on native)
       let placeName = '';
       if (Platform.OS !== 'web' && location?.coords) {
         try {
@@ -307,173 +203,88 @@ export default function HomeScreen({ navigation }) {
       );
     } catch (error) {
       console.error('Share location error:', error);
-      const errorMessage = error.response?.data?.error || 'Could not share location. Please check your connection and try again.';
-      Alert.alert('Unable to Share Location', errorMessage, [
-        { text: 'OK', style: 'cancel' }
-      ]);
+      Alert.alert('Unable to Share Location',
+        error.response?.data?.error || 'Could not share location. Please try again.',
+        [{ text: 'OK', style: 'cancel' }]
+      );
     } finally {
       setIsSharing(false);
     }
   };
 
-if (isLoading) {
-  return (
-    <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="dark-content" />
-      <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
-      <View style={styles.loadingContainer}>
-        <Text style={[theme.textStyles.h3, styles.loadingText]}>Loading Sugarbum...</Text>
-      </View>
-    </SafeAreaView>
-  );
-}
+  // Render states
+  if (isLoading) {
+    return <LoadingState />;
+  }
 
-if (!partner) {
+  if (!partner) {
+    return (
+      <EmptyPartnerState
+        refreshing={refreshing}
+        onRefresh={onRefresh}
+        onFindPartner={() => navigation.navigate('Partner')}
+      />
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <StatusBar barStyle="dark-content" />
-      <WavePattern color={theme.colors.dustyRose} opacity={0.08} />
+
+      <HomeBackgrounds />
+
       <ScrollView
-        contentContainerStyle={styles.emptyContainer}
+        style={styles.scrollView}
+        contentContainerStyle={styles.scrollContent}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
+        showsVerticalScrollIndicator={false}
       >
-        <Image source={require('../../assets/icons/couple.png')} style={styles.emptyIcon} resizeMode="contain" />
-        <Text style={[theme.textStyles.h2, styles.emptyTitle]}>No Partner Yet</Text>
-        <Text style={[theme.textStyles.body, styles.emptyText]}>
-          Connect with your sugarbum to start sharing your daily moments
-        </Text>
-        <GentleButton
-          title="Find Your Partner"
-          onPress={() => navigation.navigate('Partner')}
-          variant="primary"
-          size="large"
+        <HomeHeader
+          partner={partner}
+          isTouchMode={isTouchMode}
+          setIsTouchMode={setIsTouchMode}
+          onCapsulePress={() => navigation.navigate('Capsule')}
         />
+
+        <ErrorBanner error={error} onRetry={loadData} />
+
+        {/* Digital Touch Surface */}
+        {isTouchMode && (
+          <View
+            style={StyleSheet.absoluteFill}
+            {...panResponder.panHandlers}
+            zIndex={10}
+          >
+            <View style={styles.touchModeIndicator}>
+              <Text style={styles.touchModeText}>Touch Mode Active</Text>
+            </View>
+          </View>
+        )}
+
+        <StatusCard
+          partner={partner}
+          signals={signals}
+          isOnline={isOnline}
+          lastSeen={lastSeen}
+        />
+
+        <QuickActions
+          partnerName={partner.display_name || partner.name}
+          onShareLocation={shareLocation}
+          isSharing={isSharing}
+        />
+
+        <TodaysMoments momentCount={3} />
       </ScrollView>
+
+      <TouchOverlay userId={user?.id} partnerId={partner?.id} myPosition={myTouchPos} />
+
+      <LoveBombOverlay
+        isVisible={showLoveBomb}
+        onDismiss={() => setShowLoveBomb(false)}
+      />
     </SafeAreaView>
   );
-}
-
-return (
-  <SafeAreaView style={styles.container}>
-    <StatusBar barStyle="dark-content" />
-
-    {/* Layered decorative backgrounds - multiple patterns */}
-    <WavePattern color={theme.colors.sageGreen} opacity={0.06} />
-    <PatternBackground pattern="dots" color={theme.colors.teal} opacity={0.05} size="small" />
-    <PatternBackground pattern="diagonal-lines" color={theme.colors.lavender} opacity={0.04} size="large" />
-    <PatternBackground pattern="cross-dots" color={theme.colors.slate} opacity={0.03} size="medium" />
-
-    {/* Floating animated blobs */}
-    <BubbleAnimation color={theme.colors.teal} size={220} opacity={0.18} duration={25000} style={{ top: '-5%', right: '-15%' }} />
-    <AnimatedBlob color={theme.colors.lavender} size={180} opacity={0.2} shape="shape2" duration={30000} style={{ top: '15%', left: '-10%' }} />
-    <BubbleAnimation color={theme.colors.sageGreen} size={160} opacity={0.15} duration={22000} style={{ top: '35%', right: '-8%' }} />
-    <AnimatedBlob color={theme.colors.slate} size={200} opacity={0.12} shape="shape4" duration={28000} style={{ top: '55%', left: '-12%' }} />
-    <BubbleAnimation color={theme.colors.mutedPurple} size={140} opacity={0.16} duration={24000} style={{ bottom: '25%', right: '-5%' }} />
-    <AnimatedBlob color={theme.colors.peach} size={170} opacity={0.14} shape="shape2" duration={26000} style={{ bottom: '10%', left: '-8%' }} />
-    <BubbleAnimation color={theme.colors.mossGreen} size={130} opacity={0.18} duration={23000} style={{ bottom: '40%', right: '80%' }} />
-    <AnimatedBlob color={theme.colors.deepTeal} size={150} opacity={0.13} shape="shape1" duration={27000} style={{ top: '70%', right: '-6%' }} />
-
-    <ScrollView
-      style={styles.scrollView}
-      contentContainerStyle={styles.scrollContent}
-      refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} />}
-      showsVerticalScrollIndicator={false}
-    >
-      {/* Header */}
-      <View style={styles.header}>
-        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-          <View>
-            <Text style={[theme.textStyles.h2, styles.headerTitle]}>
-              {partner.display_name || partner.name}'s Now
-            </Text>
-            <Text style={[theme.textStyles.bodySmall, styles.headerSubtitle]}>
-              See what they're up to
-            </Text>
-          </View>
-          <TouchableOpacity onPress={() => navigation.navigate('Capsule')} style={{ padding: 8 }}>
-            <Image source={require('../../assets/icons/capsule.png')} style={styles.headerIcon} resizeMode="contain" />
-          </TouchableOpacity>
-          <TouchableOpacity
-            onPress={() => setIsTouchMode(!isTouchMode)}
-            style={{ padding: 8, backgroundColor: isTouchMode ? theme.colors.primary + '20' : 'transparent', borderRadius: 20 }}
-          >
-            <Image source={require('../../assets/icons/touch.png')} style={styles.headerIcon} resizeMode="contain" />
-          </TouchableOpacity>
-        </View>
-      </View>
-
-      {/* Error Banner */}
-      {error && (
-        <View style={styles.errorBanner}>
-          <Image source={require('../../assets/icons/warning.png')} style={styles.errorIcon} resizeMode="contain" />
-          <Text style={styles.errorText}>{error}</Text>
-          <TouchableOpacity onPress={loadData} style={styles.retryButton}>
-            <Text style={styles.retryText}>Retry</Text>
-          </TouchableOpacity>
-        </View>
-      )}
-
-      {/* Digital Touch Surface (Only active when mode is on) */}
-      {isTouchMode && (
-        <View
-          style={StyleSheet.absoluteFill}
-          {...panResponder.panHandlers}
-          zIndex={10} // Sit on top of scrollview
-        >
-          {/* Visual feedback that mode is on */}
-          <View style={{ position: 'absolute', top: 10, alignSelf: 'center', backgroundColor: 'rgba(0,0,0,0.5)', padding: 8, borderRadius: 16 }}>
-            <Text style={{ color: 'white', fontWeight: 'bold' }}>Touch Mode Active</Text>
-          </View>
-        </View>
-      )}
-
-      {/* Main Status Card */}
-      <StatusCard
-        partner={partner}
-        signals={signals}
-        isOnline={isOnline}
-        lastSeen={lastSeen}
-      />
-
-      {/* Quick Actions */}
-      <QuickActions
-        partnerName={partner.display_name || partner.name}
-        onShareLocation={shareLocation}
-        isSharing={isSharing}
-      />
-
-      {/* Today's Moments Preview */}
-      <View style={styles.momentsSection}>
-        <Text style={[theme.textStyles.h3, styles.sectionTitle]}>
-          Today's Moments
-        </Text>
-
-        <View style={styles.timelineDots}>
-          {[...Array(5)].map((_, i) => (
-            <View
-              key={i}
-              style={[
-                styles.dot,
-                i < 3 && styles.dotActive,
-              ]}
-            />
-          ))}
-        </View>
-
-        <Text style={[theme.textStyles.bodySmall, styles.momentsText]}>
-          3 moments shared today
-        </Text>
-      </View>
-    </ScrollView>
-    {/* Digital Touch Visuals (Always render so we can see partner) */}
-    <TouchOverlay userId={user?.id} partnerId={partner?.id} myPosition={myTouchPos} />
-
-    <LoveBombOverlay
-      isVisible={showLoveBomb}
-      onDismiss={() => setShowLoveBomb(false)}
-    />
-  </SafeAreaView>
-);
 }
 
 const styles = StyleSheet.create({
@@ -488,107 +299,16 @@ const styles = StyleSheet.create({
     padding: theme.spacing['2xl'],
     paddingBottom: theme.spacing['4xl'],
   },
-  header: {
-    marginBottom: theme.spacing.xl,
+  touchModeIndicator: {
+    position: 'absolute',
+    top: 10,
+    alignSelf: 'center',
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    padding: 8,
+    borderRadius: 16,
   },
-  headerTitle: {
-    color: theme.colors.deepNavy,
-    marginBottom: theme.spacing.xs,
-  },
-  headerSubtitle: {
-    color: theme.colors.mediumGray,
-  },
-  headerIcon: {
-    width: 32,
-    height: 32,
-  },
-  sectionTitle: {
-    color: theme.colors.deepNavy,
-    marginBottom: theme.spacing.lg,
-  },
-  momentsSection: {
-    marginBottom: theme.spacing.xl,
-  },
-  timelineDots: {
-    flexDirection: 'row',
-    justifyContent: 'center',
-    gap: theme.spacing.sm,
-    marginBottom: theme.spacing.md,
-  },
-  dot: {
-    width: 12,
-    height: 12,
-    borderRadius: 6,
-    backgroundColor: theme.colors.lightGray,
-  },
-  dotActive: {
-    backgroundColor: theme.colors.sageGreen,
-  },
-  momentsText: {
-    color: theme.colors.mediumGray,
-    textAlign: 'center',
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  loadingText: {
-    fontSize: 16,
-    color: theme.colors.mediumGray,
-  },
-  emptyContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 24,
-  },
-  emptyIcon: {
-    width: 100,
-    height: 100,
-    marginBottom: 16,
-  },
-  emptyTitle: {
-    fontSize: 24,
-    fontWeight: 'bold',
-    marginBottom: 8,
-    color: theme.colors.deepNavy,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: theme.colors.mediumGray,
-    textAlign: 'center',
-    marginBottom: 24,
-  },
-  errorBanner: {
-    backgroundColor: '#FEE2E2',
-    padding: theme.spacing.md,
-    borderRadius: theme.borderRadius.medium,
-    marginBottom: theme.spacing.lg,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  errorIcon: {
-    width: 20,
-    height: 20,
-    marginRight: 8,
-    tintColor: '#991B1B',
-  },
-  errorText: {
-    color: '#991B1B',
-    fontSize: 14,
-    flex: 1,
-  },
-  retryButton: {
-    backgroundColor: '#DC2626',
-    paddingHorizontal: theme.spacing.md,
-    paddingVertical: theme.spacing.sm,
-    borderRadius: theme.borderRadius.small,
-  },
-  retryText: {
+  touchModeText: {
     color: 'white',
-    fontWeight: '600',
-    fontSize: 14,
+    fontWeight: 'bold',
   },
 });

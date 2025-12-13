@@ -429,18 +429,27 @@ router.post('/miss-you', async (req, res) => {
       return res.status(404).json({ error: 'No partner found' });
     }
 
-    // 1. Update Firebase for Realtime Trigger (The "Love Bomb")
+    // 1. Try to update Firebase for Realtime Trigger (The "Love Bomb")
+    // This is optional - the feature works via push notification even without Firebase
     const firebaseWriteSuccess = await writeToFirebaseWithRetry(`users/${partnerId}/inbox/miss_you`, {
       senderId: req.user.id,
       timestamp: Date.now(),
       type: 'love_bomb'
     });
+
     if (!firebaseWriteSuccess) {
-      console.error('Failed to write "miss you" signal to Firebase for partner:', partnerId);
-      return res.status(500).json({ error: 'Failed to send love (realtime update failed)' });
+      console.warn('Firebase unavailable for "miss you" signal - continuing with push notification only');
     }
 
-    // 2. Send Push Notification (High Priority)
+    // 2. Store in database for persistence
+    await pool.query(
+      `INSERT INTO device_signals (user_id, do_not_disturb, timezone)
+       VALUES ($1, false, 'miss_you_sent')
+       ON CONFLICT DO NOTHING`,
+      [req.user.id]
+    ).catch(() => {}); // Non-blocking
+
+    // 3. Send Push Notification (High Priority) - This is the primary delivery mechanism
     const senderName = req.user.name || 'Your partner';
     sendPushToPartner(
       req.user.id,
@@ -449,7 +458,10 @@ router.post('/miss-you', async (req, res) => {
       { type: 'miss_you', priority: 'high' }
     );
 
-    res.json({ message: 'Love sent!' });
+    res.json({
+      message: 'Love sent!',
+      realtime: firebaseWriteSuccess ? 'enabled' : 'push_only'
+    });
 
   } catch (error) {
     console.error('Miss you error:', error);
