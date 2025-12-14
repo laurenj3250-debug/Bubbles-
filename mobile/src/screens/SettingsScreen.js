@@ -328,18 +328,21 @@ export default function SettingsScreen({ navigation }) {
         <View style={styles.section}>
           <Text style={[theme.textStyles.h3, styles.sectionTitle]}>About</Text>
 
-          <BlobCard style={styles.aboutCard}>
-            <View style={styles.aboutTitleContainer}>
-              <Image source={require('../../assets/icons/heart.png')} style={styles.aboutIconImage} resizeMode="contain" />
-              <Text style={styles.aboutTitle}>Sugarbum</Text>
+          <TouchableOpacity
+            style={styles.settingItem}
+            onPress={() => navigation.navigate('About')}
+          >
+            <Text style={styles.settingIcon}>💜</Text>
+            <View style={styles.settingInfo}>
+              <Text style={[theme.textStyles.body, styles.settingTitle]}>
+                About Sugarbum
+              </Text>
+              <Text style={[theme.textStyles.bodySmall, styles.settingDescription]}>
+                Version 1.0.0 • Be together, apart
+              </Text>
             </View>
-            <Text style={[theme.textStyles.bodySmall, styles.aboutVersion]}>
-              Version 1.0.0
-            </Text>
-            <Text style={[theme.textStyles.body, styles.aboutDescription]}>
-              Stay connected with your person through automatic life signals
-            </Text>
-          </BlobCard>
+            <Text style={styles.settingChevron}>›</Text>
+          </TouchableOpacity>
         </View>
 
         {/* Logout Button */}

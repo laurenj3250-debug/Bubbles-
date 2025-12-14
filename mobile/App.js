@@ -7,7 +7,7 @@ import { StatusBar } from 'expo-status-bar';
 import { Platform, Text, View } from 'react-native';
 
 // Components
-import { HomeIcon, PartnerIcon, SettingsIcon, SugarbumIcon } from './src/components';
+import { HomeIcon, PartnerIcon, SettingsIcon, SugarbumIcon, ErrorBoundary } from './src/components';
 
 // Screens
 import LoginScreen from './src/screens/LoginScreen';
@@ -17,6 +17,7 @@ import PartnerScreen from './src/screens/PartnerScreen';
 import SettingsScreen from './src/screens/SettingsScreen';
 import PrivacyScreen from './src/screens/PrivacyScreen';
 import CapsuleScreen from './src/screens/CapsuleScreen';
+import AboutScreen from './src/screens/AboutScreen';
 
 // Context
 import { AuthContext } from './src/context/AuthContext';
@@ -149,26 +150,29 @@ export default function App() {
   }
 
   return (
-    <AuthContext.Provider value={authContext}>
-      <NavigationContainer>
-        <StatusBar style="auto" />
-        <Stack.Navigator screenOptions={{ headerShown: false }}>
-          {userToken == null ? (
-            // Auth Stack
-            <>
-              <Stack.Screen name="Login" component={LoginScreen} />
-              <Stack.Screen name="Register" component={RegisterScreen} />
-            </>
-          ) : (
-            // App Stack
-            <>
-              <Stack.Screen name="App" component={AppTabs} />
-              <Stack.Screen name="Privacy" component={PrivacyScreen} />
-              <Stack.Screen name="Capsule" component={CapsuleScreen} />
-            </>
-          )}
-        </Stack.Navigator>
-      </NavigationContainer>
-    </AuthContext.Provider>
+    <ErrorBoundary>
+      <AuthContext.Provider value={authContext}>
+        <NavigationContainer>
+          <StatusBar style="auto" />
+          <Stack.Navigator screenOptions={{ headerShown: false }}>
+            {userToken == null ? (
+              // Auth Stack
+              <>
+                <Stack.Screen name="Login" component={LoginScreen} />
+                <Stack.Screen name="Register" component={RegisterScreen} />
+              </>
+            ) : (
+              // App Stack
+              <>
+                <Stack.Screen name="App" component={AppTabs} />
+                <Stack.Screen name="Privacy" component={PrivacyScreen} />
+                <Stack.Screen name="Capsule" component={CapsuleScreen} />
+                <Stack.Screen name="About" component={AboutScreen} />
+              </>
+            )}
+          </Stack.Navigator>
+        </NavigationContainer>
+      </AuthContext.Provider>
+    </ErrorBoundary>
   );
 }

@@ -14,7 +14,8 @@ import {
 import * as Location from 'expo-location';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import api from '../config/api';
-import { StatusCard, QuickActions } from '../components';
+import { StatusCard, QuickActions, StatusCardSkeleton } from '../components';
+import haptics from '../utils/haptics';
 import { LoveBombOverlay } from '../components/LoveBombOverlay';
 import { TouchOverlay } from '../components/TouchOverlay';
 import {
@@ -131,8 +132,10 @@ export default function HomeScreen({ navigation }) {
   };
 
   const onRefresh = async () => {
+    haptics.light();
     setRefreshing(true);
     await Promise.all([fetchPartner(), fetchSentRequests(), fetchSignals()]);
+    haptics.success();
     setRefreshing(false);
   };
 
