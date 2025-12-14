@@ -1,8 +1,8 @@
-# 🫧 Bubbles Mobile App
+# Sugarbum Mobile App
 
-React Native mobile app for Bubbles couples context-sharing platform.
+> "Be together, apart" - A couples context-sharing app built with React Native (Expo)
 
-## 🚀 Quick Start
+## Quick Start
 
 ```bash
 # Install dependencies
@@ -16,178 +16,157 @@ npm run ios
 
 # Run on Android emulator
 npm run android
+
+# Run on web
+npm run web
 ```
 
-## 📱 App Structure
+## App Structure
 
 ```
 mobile/
-├── App.js                 # Root component with navigation
-├── app.json              # Expo configuration
+├── App.js                      # Root component with navigation
+├── app.json                    # Expo configuration
+├── assets/
+│   ├── icon.png               # App icon
+│   ├── splash.png             # Splash screen
+│   ├── adaptive-icon.png      # Android adaptive icon
+│   └── icons/                 # UI icons
 ├── src/
-│   ├── screens/         # UI screens
-│   │   ├── LoginScreen.js
-│   │   ├── RegisterScreen.js
-│   │   ├── HomeScreen.js
-│   │   ├── PartnerScreen.js
-│   │   ├── SettingsScreen.js
-│   │   └── PrivacyScreen.js
+│   ├── components/
+│   │   ├── SugarbumLogo.js    # SVG logo component
+│   │   ├── TabBarIcons.js     # Themed tab bar icons
+│   │   ├── BlobCard.js        # Animated card component
+│   │   ├── GentleButton.js    # Themed button
+│   │   ├── WavePattern.js     # Background pattern
+│   │   ├── StatusAvatar.js    # Partner status avatar
+│   │   └── index.js           # Component exports
+│   ├── screens/
+│   │   ├── LoginScreen.js     # Login with Sugarbum branding
+│   │   ├── RegisterScreen.js  # Registration flow
+│   │   ├── HomeScreen.js      # Main dashboard
+│   │   ├── PartnerScreen.js   # Partner management
+│   │   ├── SettingsScreen.js  # App settings
+│   │   ├── PrivacyScreen.js   # Privacy controls
+│   │   └── CapsuleScreen.js   # Daily capsules
+│   ├── theme/
+│   │   ├── colors.js          # Sugarbum color palette
+│   │   ├── typography.js      # Font styles
+│   │   ├── spacing.js         # Layout spacing
+│   │   └── index.js           # Theme export
 │   ├── context/
-│   │   └── AuthContext.js  # Auth state management
+│   │   └── AuthContext.js     # Auth state management
+│   ├── hooks/
+│   │   └── usePartnerSignals.js
+│   ├── services/
+│   │   ├── notifications.js   # Push notifications
+│   │   ├── LocationService.js # Location tracking
+│   │   └── LocationTask.js    # Background location
 │   └── config/
-│       └── api.js          # API client configuration
+│       ├── api.js             # API client
+│       └── firebase.js        # Firebase config
 └── package.json
 ```
 
-## 🔧 Configuration
+## Sugarbum Design System
+
+### Brand Colors
+
+```javascript
+// Logo Colors
+logoPink: '#D4A5A5'    // Left bum (dusty rose)
+logoGreen: '#8FAF8F'   // Right bum (sage green)
+logoHeart: '#E55050'   // Heart (red)
+logoNavy: '#191938'    // Background (deep navy)
+
+// Primary Colors
+primary: '#8B5CF6'     // Main purple
+dustyRose: '#D4A5A5'   // Muted rose
+sageGreen: '#8FAF8F'   // Sage green
+cream: '#FAF8F5'       // Background
+
+// Accent Colors
+teal: '#4A9B8E'        // Location/movement
+lavender: '#B5A9D8'    // Rest states
+warmYellow: '#E5C185'  // Weather/energy
+```
+
+### Logo Component
+
+```javascript
+import { SugarbumLogo, SugarbumIcon } from './src/components';
+
+// Full logo with wifi signals
+<SugarbumLogo size={180} showSignals={true} />
+
+// Compact icon version
+<SugarbumIcon size={48} />
+```
+
+### Tab Bar Icons
+
+```javascript
+import { HomeIcon, PartnerIcon, SettingsIcon } from './src/components';
+
+// Usage in tab navigator
+tabBarIcon: ({ color, focused }) => (
+  <HomeIcon size={24} color={color} focused={focused} />
+)
+```
+
+## Configuration
 
 ### API URL
 
-Update the backend API URL in `src/config/api.js`:
+The app connects to the Railway-hosted backend by default. Update `src/config/api.js` if needed:
 
 ```javascript
-const API_URL = __DEV__
-  ? 'http://localhost:3000/api'           // Development
-  : 'https://your-app.railway.app/api';   // Production
+// Production (default)
+return 'https://sugarbum-backend-production.up.railway.app/api';
+
+// Local development
+return 'http://localhost:3000/api';
 ```
 
-For development on physical device, use your computer's local IP:
-
-```javascript
-const API_URL = 'http://192.168.1.x:3000/api';
-```
-
-### Permissions
-
-The app requires several permissions configured in `app.json`:
+### Permissions (app.json)
 
 **iOS:**
 - Location (Always & When In Use)
-- Motion & Fitness
-- HealthKit
-- Calendar
 - Background Location
+- Push Notifications
 
 **Android:**
 - ACCESS_FINE_LOCATION
 - ACCESS_BACKGROUND_LOCATION
-- ACTIVITY_RECOGNITION
-- READ_CALENDAR
+- FOREGROUND_SERVICE
 
-## 📦 Dependencies
-
-### Core
-- `expo` - React Native framework
-- `react-navigation` - Navigation library
-- `axios` - HTTP client
-- `@react-native-async-storage/async-storage` - Local storage
-
-### Expo Modules
-- `expo-location` - Location services
-- `expo-notifications` - Push notifications
-- `expo-task-manager` - Background tasks
-- `expo-calendar` - Calendar access
-- `expo-battery` - Battery info
-- `expo-auth-session` - OAuth flows
-- `expo-secure-store` - Secure token storage
-
-## 🎨 Screens
+## Key Features
 
 ### Authentication
-- **LoginScreen**: Email/password login
-- **RegisterScreen**: Create new account
+- JWT-based login/registration
+- Secure token storage with AsyncStorage
+- Automatic token refresh
 
-### Main App (Tab Navigation)
-- **HomeScreen**: View partner's signals (location, activity, music, device)
-- **PartnerScreen**: Send/accept partner requests, manage connection
-- **SettingsScreen**: Account settings, connected services, about
+### Partner System
+- Email-based partner invites
+- Real-time connection status
+- "Miss You" button with notifications
 
-### Modal Screens
-- **PrivacyScreen**: Manage sharing preferences, pause/resume sharing
+### Location Sharing
+- Optional location sharing
+- Weather integration at partner's location
+- Privacy pause controls
 
-## 🔐 Authentication Flow
+### Daily Capsules
+- AI-generated relationship summaries
+- Photo highlights
+- Sync moments detection
 
-1. User logs in or registers
-2. Backend returns JWT token
-3. Token stored in AsyncStorage
-4. Token added to all API requests via Axios interceptor
-5. On 401 error, user logged out automatically
-
-## 📡 API Integration
-
-All API calls go through the `api` client in `src/config/api.js`:
-
-```javascript
-import api from '../config/api';
-
-// Example: Get partner's signals
-const response = await api.get('/signals/partner/all');
-```
-
-The API client automatically:
-- Adds JWT token to requests
-- Handles token expiration
-- Provides error handling
-
-## 🎨 Theming
-
-Colors:
-- Primary: `#8B5CF6` (Purple)
-- Background: `#F9FAFB` (Light Gray)
-- Card: `#FFFFFF` (White)
-- Text: `#111827` (Dark Gray)
-- Secondary Text: `#6B7280` (Gray)
-
-## 🚧 Future Features
-
-### Phase 2: Location & Weather
-- [ ] Request location permissions
-- [ ] Manual location share button
-- [ ] Fetch weather from OpenWeatherMap
-- [ ] Display location + weather card
-
-### Phase 3: Background Services
-- [ ] Background location tracking
-- [ ] Geofencing setup
-- [ ] Push notification handling
-- [ ] Periodic signal updates
-
-### Phase 4: Integrations
-- [ ] Spotify OAuth flow
-- [ ] HealthKit data fetching (iOS)
-- [ ] Google Fit integration (Android)
-- [ ] Calendar event reading
-
-### Phase 5: Advanced Features
-- [ ] Apple Watch complications
-- [ ] Android home screen widgets
-- [ ] Photo sharing
-- [ ] Voice notes
-- [ ] Customizable check-in times
-
-## 🧪 Testing
-
-### Test on Physical Device
-
-1. Install Expo Go app from App Store / Play Store
-2. Run `npm start`
-3. Scan QR code with Expo Go
-
-### Test on Simulator/Emulator
-
-```bash
-# iOS (requires Xcode)
-npm run ios
-
-# Android (requires Android Studio)
-npm run android
-```
-
-## 📱 Building for Production
+## Building for Production
 
 ### Prerequisites
 - Expo account: https://expo.dev/
-- Install EAS CLI: `npm install -g eas-cli`
+- EAS CLI: `npm install -g eas-cli`
 
 ### Build Commands
 
@@ -195,60 +174,38 @@ npm run android
 # Login to Expo
 eas login
 
-# Configure project
-eas build:configure
-
 # Build for iOS
 eas build --platform ios
 
 # Build for Android
 eas build --platform android
 
-# Build for both
-eas build --platform all
-```
-
-### Submit to App Stores
-
-```bash
-# Submit to App Store
+# Submit to stores
 eas submit --platform ios
-
-# Submit to Play Store
 eas submit --platform android
 ```
 
-See [Expo EAS Build docs](https://docs.expo.dev/build/introduction/) for more details.
-
-## 🐛 Troubleshooting
+## Troubleshooting
 
 ### "Network request failed"
-- Check that backend is running
+- Check backend is running
 - Verify API_URL in `src/config/api.js`
-- For physical device, use local IP instead of `localhost`
+- For physical device, ensure same network
 
-### "Cannot connect to Metro"
-- Run `expo start --clear` to clear cache
-- Check that port 19000-19001 are not in use
+### "White screen after QR scan"
+- Fixed in latest version (api.js syntax error)
+- Run `npm start --clear` to clear cache
 
-### Location permissions not working
-- Ensure `expo-location` is installed
-- Check permissions in `app.json`
-- Request permissions at runtime
+### Metro bundler issues
+- Clear cache: `npx expo start --clear`
+- Delete node_modules and reinstall
 
-### App crashes on startup
-- Run `npm install` to ensure dependencies are installed
-- Clear cache: `expo start --clear`
-- Check for any missing imports
+## Resources
 
-## 📚 Resources
-
-- [React Native Docs](https://reactnative.dev/)
 - [Expo Docs](https://docs.expo.dev/)
 - [React Navigation](https://reactnavigation.org/)
-- [Expo Location](https://docs.expo.dev/versions/latest/sdk/location/)
-- [Expo Notifications](https://docs.expo.dev/versions/latest/sdk/notifications/)
+- [React Native SVG](https://github.com/software-mansion/react-native-svg)
 
-## 📝 License
+---
 
-MIT
+**Sugarbum** - Be together, apart
