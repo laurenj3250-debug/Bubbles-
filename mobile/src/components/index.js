@@ -16,3 +16,5 @@ export { HomeIcon, PartnerIcon, SettingsIcon, CapsuleIcon, HeartIcon, WifiSignal
 export { StatusCardSkeleton, PartnerCardSkeleton, ListItemSkeleton, FullScreenSkeleton, SkeletonBox } from './SkeletonLoader';
 export { default as ErrorBoundary, ErrorMessage, withErrorBoundary } from './ErrorBoundary';
 export { CountdownTimer, CountdownCard } from './CountdownTimer';
+export { VoiceNoteRecorder, VoiceNotePlayer } from './VoiceNote';
+export { PhotoCapture, PhotoPreview, PhotoMessage, PhotoGrid } from './PhotoShare';

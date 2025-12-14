@@ -18,6 +18,7 @@ import SettingsScreen from './src/screens/SettingsScreen';
 import PrivacyScreen from './src/screens/PrivacyScreen';
 import CapsuleScreen from './src/screens/CapsuleScreen';
 import AboutScreen from './src/screens/AboutScreen';
+import OnboardingScreen from './src/screens/OnboardingScreen';
 
 // Context
 import { AuthContext } from './src/context/AuthContext';
@@ -83,9 +84,10 @@ function AppTabs() {
 export default function App() {
   const [isLoading, setIsLoading] = useState(true);
   const [userToken, setUserToken] = useState(null);
+  const [hasOnboarded, setHasOnboarded] = useState(true); // Default to true to avoid flash
 
   useEffect(() => {
-    // Check if user is already logged in
+    // Check if user is already logged in and has completed onboarding
     checkAuth();
   }, []);
 
@@ -97,13 +99,21 @@ export default function App() {
 
   const checkAuth = async () => {
     try {
-      const token = await AsyncStorage.getItem('userToken');
+      const [token, onboarded] = await Promise.all([
+        AsyncStorage.getItem('userToken'),
+        AsyncStorage.getItem('hasOnboarded'),
+      ]);
       setUserToken(token);
+      setHasOnboarded(onboarded === 'true');
     } catch (error) {
       console.error('Auth check error:', error);
     } finally {
       setIsLoading(false);
     }
+  };
+
+  const handleOnboardingComplete = () => {
+    setHasOnboarded(true);
   };
 
   const authContext = React.useMemo(
@@ -146,6 +156,15 @@ export default function App() {
         <SugarbumIcon size={64} />
         <Text style={{ marginTop: 16, color: '#3D3B5E', fontSize: 18 }}>Loading Sugarbum...</Text>
       </View>
+    );
+  }
+
+  // Show onboarding for new users
+  if (!hasOnboarded) {
+    return (
+      <ErrorBoundary>
+        <OnboardingScreen onComplete={handleOnboardingComplete} />
+      </ErrorBoundary>
     );
   }
 
